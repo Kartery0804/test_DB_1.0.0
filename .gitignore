@@ -1,0 +1,5 @@
+.venv/
+tests/
+database/data
+database/sql
+*/*/__pycache__
