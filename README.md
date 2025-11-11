@@ -29,4 +29,10 @@
     deactivate.bat
 ```
 
+#### 提交main分支
+```shell
+    git remote add origin git@github.com:Kartery0804/test_DB_1.0.0.git
+    git branch -M main
+    git push -u origin main
+```
 ---
