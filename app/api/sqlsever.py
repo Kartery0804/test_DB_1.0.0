@@ -1,11 +1,10 @@
 from app.services import with_mysql
-from flask import Flask, request ,jsonify
+from flask import jsonify
+from app.api import api_bp
 
-app = Flask(__name__)
 
-# 定义路由：当访问 /hello 时触发此函数
-@app.route('/api/sqlsever/<flag>', methods=['GET'])
-def hello(flag):
+@api_bp.route('/sqlsever/<flag>', methods=['GET'])
+def control_mysql(flag):
     if flag == "on":
         if with_mysql.start_mysql_service():
             return "on successful!"
@@ -16,6 +15,3 @@ def hello(flag):
             return "off successful!"
         else:
             return "can't stop!"
-
-if __name__ == '__main__':
-    app.run(port=25000, debug=True)  # 启动服务，端口5000
