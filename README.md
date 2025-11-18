@@ -35,4 +35,10 @@
     git branch -M main
     git push -u origin main
 ```
+
+#### 创建虚拟环境
+```shell
+    python -m venv .venv
+    python -m pip install --upgrade pip
+```
 ---
