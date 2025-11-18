@@ -16,6 +16,6 @@ GET http://127.0.0.1:25000/api/hello
 
 ###
 
-GET http://127.0.0.1:25000/api/sqlsever/on
+GET http://127.0.0.1:25000/api/sqlserver/on
 
 ###

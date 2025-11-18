@@ -3,7 +3,7 @@ from flask import jsonify
 from app.api import api_bp
 
 
-@api_bp.route('/sqlsever/<flag>', methods=['GET'])
+@api_bp.route('/sqlserver/<flag>', methods=['GET'])
 def control_mysql(flag):
     if flag == "on":
         if with_mysql.start_mysql_service():
