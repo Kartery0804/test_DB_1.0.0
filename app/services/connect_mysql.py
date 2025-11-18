@@ -1,31 +1,23 @@
 import pymysql
+from pymysql import OperationalError
 
-connection =  pymysql.connect(
-    host='localhost',
-    user='root',
-    passwd='pizza0804',
-    database='demo'
-)
-
-def connect_mysql(connection,sql = None):
+def connect_mysql(host,user,passwd,database):
     try:
-        # 2. 创建游标对象
-        with connection.cursor() as cursor:
-            
-            # 4. 执行查询
-            cursor.execute(sql)
-            
-            # 5. 获取所有结果
-            results = cursor.fetchall()
-
-            
-            # 6. 打印结果
-            for row in results:
-                print(row)
+        connection =  pymysql.connect(
+        host=host,
+        user=user,
+        passwd=passwd,
+        database=database
+        )   
+        return connection
+    except:
+        print("❌ 数据库连接失败: ")
     finally:
-        # 7. 关闭连接
-        connection.close()
+    # 确保关闭连接
+        if 'connection' in locals() and connection.open:
+            #connection.close()
+            pass
 
 
 if __name__ == "__main__":
-    connect_mysql(connection)
+    connect_mysql('localhost','root','123456','sys')
