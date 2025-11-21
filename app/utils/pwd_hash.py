@@ -2,6 +2,7 @@ import hashlib
 import os
 import base64
 import hmac
+import binascii
 
 def hash_password(password, salt=None):
     """带盐值的密码哈希"""
@@ -22,7 +23,7 @@ def hash_password(password, salt=None):
     combined = salt + hashed
     return base64.b64encode(combined).decode('utf-8')
 
-def verify_password(password, hashed_password):
+def verify_password_old(password, hashed_password):
     """验证密码是否匹配哈希值"""
     try:
         # 解码Base64字符串
@@ -44,6 +45,29 @@ def verify_password(password, hashed_password):
         print(f"验证过程中出现异常: {e}")
         return False
 
+def verify_password(password, hex_hash, hex_salt):
+    """验证密码是否匹配哈希值"""
+    try:
+        # 将十六进制字符串转换为字节
+        salt = bytes.fromhex(hex_salt)
+        stored_hash = bytes.fromhex(hex_hash)
+        
+        # 使用相同的盐值计算输入密码的哈希
+        new_hash = hashlib.pbkdf2_hmac(
+            'sha256',
+            password.encode('utf-8'),
+            salt,
+            100000
+        )
+        
+        # 使用hmac模块的compare_digest函数安全比较
+        return hmac.compare_digest(stored_hash, new_hash)
+    except (ValueError, binascii.Error) as e:
+        print(f"十六进制解码错误: {e}")
+        return False
+    except Exception as e:
+        print(f"验证过程中出现异常: {e}")
+        return False
 # 测试代码
 if __name__ == "__main__":
     password = "my_password"
@@ -64,5 +88,5 @@ if __name__ == "__main__":
     print("哈希值长度:", len(hash_value))
     
     # 验证密码
-    print("\n验证结果:", verify_password(password, hashed))
-    print("错误密码验证:", verify_password("wrong_password", hashed))
+    print("\n验证结果:", verify_password_old(password, hashed))
+    print("错误密码验证:", verify_password_old("wrong_password", hashed))
