@@ -1,6 +1,8 @@
 import pymysql
 from pymysql import OperationalError
 
+default = ("localhost","root","Pizza0804","srs_v1.0")
+
 """谨记自行关闭连接对象，在异常处理中做好处理"""
 def connect_mysql(host, user, passwd, database):
     """建立MySQL数据库连接"""
