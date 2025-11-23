@@ -33,7 +33,6 @@ def login():
         regulate_code = "-1"
         if status:
             regulate_code = lm.get_regulate_code(conn,data['username'],0)
-            print('✅ Get regulate_code success!')
         response = {
             "status": True,
             "regulate_code":13,
@@ -54,7 +53,7 @@ def login():
         }
         return response
     except Exception as e:
-        return jsonify({"error":"Unknow error!","msg":e})
+        return jsonify({"column_name": ["error"],"data": [str(e)]})
     finally:
         conn.close()
     

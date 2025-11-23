@@ -9,18 +9,18 @@ from app.utils import easy_query as eq
 @regulate(0b1101)
 def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept_id:str = None,manager_employee_id:str = None):
     try:
-        if not om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"]:
+        if not om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"] and not om.mysql_select_dict(conn,"department",{"dept_code":dept_code})["data"]:
             if om.mysql_insert_dict(conn,"department",{"dept_name":dept_name,"dept_code":dept_code,"parent_dept_id":parent_dept_id,"manager_employee_id":manager_employee_id}) != None:
                 return True
             else:
                 raise Exception("error from mysql_insert_dict() ")
         else:
-            print("❌ Department name duplication from create_dept()")
+            print("❌ Department name/code duplication from add_dept()")
             return False
         
         
     except Exception as e:
-        print(f'❌ Unknow error from create_dept() : {e}')
+        print(f'❌ Unknow error from add_dept() : {e}')
         return False
     
 @regulate(0b1101)
@@ -44,7 +44,7 @@ def update_dept(conn:pymysql.Connection ,dept_name:str,new_dept_name:str = None 
             raise Exception("error from mysql_update_dict()")
 
     except Exception as e:
-        print(f'❌ Unknow error from create_dept() : {e}')
+        print(f'❌ Unknow error from update_dept() : {e}')
         return False
     
 #岗位 
@@ -99,7 +99,7 @@ def update_position(conn:pymysql.Connection,position_name:str,new_position_name:
             return False
 
     except Exception as e:
-        print(f'❌ Unknow error from create_dept() : {e}')
+        print(f'❌ Unknow error from update_position() : {e}')
         return False
     
 @regulate(0b1101)
@@ -121,11 +121,15 @@ def delete_position(conn:pymysql.Connection,position_name:str):
 
 @regulate(0b1101)
 def read_info(conn:pymysql.Connection,table_name:str,where_arg: dict = None):
-    info = om.mysql_select_dict(conn,table_name,where_arg)
-    if info != None:
-        return info
-    else:
-        return {"column_name": ["error"],"data": ["unknow error from read_info()"]}
+    try:
+        info = om.mysql_select_dict(conn,table_name,where_arg)
+        if info != None:
+            return info
+        else:
+            return {"column_name": ["error"],"data": ["unknow error from read_info()"]}
+    except Exception as e:
+        print(f'❌ Unknow error from read_info() : {e}')
+        return False
 
 
 @regulate(0b1101)

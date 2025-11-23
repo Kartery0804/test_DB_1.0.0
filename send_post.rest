@@ -40,7 +40,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://127.0.0.1:25000/api/dept
+POST http://127.0.0.1:25000/api/dept/create
 Content-Type: application/json
 
 {
@@ -48,5 +48,8 @@ Content-Type: application/json
     "password":"my_password",
     "task":"show",
     "table_name": "department",
-    "regulate_code":1
+    "regulate_code":0,
+    
+    "dept_name":"Logistics Dept",
+    "dept_code":"00010"
 }

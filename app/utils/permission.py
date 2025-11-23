@@ -8,14 +8,14 @@ def regulate(role_code: int):
             if role_code < 0:
                 if flag != role_code:
                     print(f"( {role_code} : {flag} Lack of special permissions)")
-                    return f"( {role_code} : {flag} Lack of special permissions)"
+                    raise Exception(f"( {role_code} : {flag} Lack of special permissions)")
                 else:
                     return func(*args, **kwargs)
             
             # 处理普通权限（role_code >= 0）- 使用二进制位判断
             if role_code & flag != role_code:  # 检查flag的所有权限位是否都包含在role_code中
                 print(f"( {role_code} : {flag} permission denied)")
-                return f"( {role_code} : {flag} permission denied)"
+                raise Exception(f"( {role_code} : {flag} permission denied)")
             
             return func(*args, **kwargs)
         return wrapper

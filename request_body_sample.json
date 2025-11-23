@@ -20,6 +20,7 @@
         "task":"show",
         "table_name": "department",
         "password": "kartery",
-        "username": "my_password"
+        "username": "my_password",
+        "regulate_code":13
     }
 ]
