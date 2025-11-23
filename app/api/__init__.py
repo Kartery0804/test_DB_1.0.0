@@ -4,3 +4,4 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 from app.api import sqlserver
 from app.api import login
+from app.api import department

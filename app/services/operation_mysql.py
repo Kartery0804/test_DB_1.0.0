@@ -43,7 +43,7 @@ def mysql_select_dict(connection: pymysql.Connection, table_name: str, where_arg
         cursor = connection.cursor()
         cursor.execute(sql, params)
         
-        print("查询成功")
+        print("✅ 查询成功")
 
         data_dict = {"column_name": [],"data": []}
 
@@ -62,7 +62,7 @@ def mysql_select_dict(connection: pymysql.Connection, table_name: str, where_arg
                         
     except Exception as e:
         print(f"执行查询时发生错误: {e}")
-        raise
+        return None
     finally:
         # 只关闭游标，不关闭连接
         if cursor:
@@ -120,7 +120,7 @@ def mysql_select_json(connection: pymysql.Connection, table_name: str, where_arg
                 converted_row = [convert_value(value) for value in row]
                 data_dict["data"].append(converted_row)
         
-        print("查询成功")
+        #print("查询成功")
         return data_dict
         
     except Exception as e:
@@ -358,7 +358,7 @@ def mysql_insert_dict(connection: pymysql.Connection, table_name: str, insert_da
         if connection:
             connection.rollback()
         print(f"执行插入时发生错误: {e}")
-        return 0
+        return None
     finally:
         # 只关闭游标，不关闭连接
         if cursor:
@@ -381,7 +381,7 @@ def mysql_update_dict(connection: pymysql.Connection, table_name: str, update_da
                   - BETWEEN操作: {'age': ('BETWEEN', [18, 30])}
     
     Returns:
-        int: 受影响的行数，失败时返回-1
+        int: 受影响的行数，失败时返回None
     """
     cursor: Optional[pymysql.cursors.Cursor] = None
     try:
@@ -456,7 +456,7 @@ def mysql_update_dict(connection: pymysql.Connection, table_name: str, update_da
         # 提交事务
         connection.commit()
         
-        print(f"更新成功，受影响行数: {affected_rows}")
+        print(f"✅ 更新成功，受影响行数: {affected_rows}")
         return affected_rows
                         
     except Exception as e:
@@ -464,7 +464,7 @@ def mysql_update_dict(connection: pymysql.Connection, table_name: str, update_da
         if connection:
             connection.rollback()
         print(f"执行更新时发生错误: {e}")
-        return -1
+        return None
     finally:
         # 只关闭游标，不关闭连接
         if cursor:

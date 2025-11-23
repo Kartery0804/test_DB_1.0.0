@@ -1,0 +1,25 @@
+[
+    {
+        "status": true,
+        "regulate_code":13,
+        "status_code":"0000",
+        "column_name": [
+            "status",
+            "regulate_code",
+            "received"
+        ],
+        "data": [
+            [
+                false,
+                "1111",
+                "Hello user here is admin's responce"
+            ]
+        ]
+    },
+    {
+        "task":"show",
+        "table_name": "department",
+        "password": "kartery",
+        "username": "my_password"
+    }
+]

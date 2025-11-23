@@ -1,0 +1,29 @@
+from app.api import api_bp
+from flask import jsonify,request
+from app.services import connect_mysql as cm
+from app.services import department_mysql as dm
+from app.services import login_mysql as lm
+
+@api_bp.route('/dept/show', methods=['POST'])
+def dept_show():
+    if not request.is_json:
+        return jsonify({"error":"Invalid type of post"})
+    try:
+        data = request.get_json()
+        conn = cm.connect_mysql(*cm.default)
+        status = lm.login_mysql(conn,data['username'],data['password'])
+        regulate_code = "0"
+        response = None
+        if status:
+            regulate_code = lm.get_regulate_code(conn,data['username'])
+            response = dm.read_info(conn,data["table_name"],r_flag = regulate_code)
+            response["regulate_code"] = regulate_code
+        else:
+            response = {"column_name": ["error"],"data": ["unknow error from read_info()"]}
+            response["regulate_code"] = "0"
+        response["status"] = status
+        return response
+    except Exception as e:
+        return jsonify({"error":"Unknow error!","msg":e})
+    finally:
+        conn.close()

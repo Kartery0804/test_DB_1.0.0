@@ -1,16 +1,26 @@
 
-def regulate(role_code):
+def regulate(role_code: int):
     def decorator(func):
         def wrapper(*args, **kwargs):
             flag = kwargs.pop('r_flag', 0)
-            if flag != role_code and role_code < 0:
-                return f"( {role_code} : {flag} Lack of special permissions)"
-            elif flag < role_code:
+            
+            # 处理特殊权限（role_code < 0）
+            if role_code < 0:
+                if flag != role_code:
+                    print(f"( {role_code} : {flag} Lack of special permissions)")
+                    return f"( {role_code} : {flag} Lack of special permissions)"
+                else:
+                    return func(*args, **kwargs)
+            
+            # 处理普通权限（role_code >= 0）- 使用二进制位判断
+            if role_code & flag != role_code:  # 检查flag的所有权限位是否都包含在role_code中
+                print(f"( {role_code} : {flag} permission denied)")
                 return f"( {role_code} : {flag} permission denied)"
-            else:
-                return func(*args, **kwargs)
+            
+            return func(*args, **kwargs)
         return wrapper
     return decorator
+
 
 
 if __name__ == '__main__':

@@ -26,5 +26,27 @@ Content-Type: application/json
 {
     "username":"Ailier",
     "password":"seeyoutomorrow",
-    "permission":0
+    "regulate_code":15
+}
+
+###
+POST http://127.0.0.1:25000/api/login
+Content-Type: application/json
+
+{
+    "username":"kartery",
+    "password":"my_password",
+    "regulate_code":0
+}
+
+###
+POST http://127.0.0.1:25000/api/dept
+Content-Type: application/json
+
+{
+    "username":"kartery",
+    "password":"my_password",
+    "task":"show",
+    "table_name": "department",
+    "regulate_code":1
 }
