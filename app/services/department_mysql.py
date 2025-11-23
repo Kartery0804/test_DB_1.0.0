@@ -169,7 +169,10 @@ if __name__ == "__main__":
 
         #新增岗位
         #add_position(conn,"Concept_Art","Animation Dept","1",0,"原画师",r_flag = 0b1101)
-        update_position(conn,"Concept_Art",dept_name="Animation Dept",headcount_budget = 10,r_flag = 0b1101)
+        #update_position(conn,"Concept_Art",dept_name="Animation Dept",headcount_budget = 10,r_flag = 0b1101)
+        add_position(conn,"Mover","Logistics Dept","1",10,"搬货工",r_flag = 0b1101)
+        #print(delete_position(conn,"Mover",r_flag = 0b1111))
+        print(om.mysql_select_dict(conn,"position"))
 
 
     except:

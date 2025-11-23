@@ -27,9 +27,10 @@ def query_item(conn:pymysql.Connection,table_f:str,table_l:str,compare_arg:list,
         f_index = om.find_index(first_data["column_name"],compare_arg[0])
         l_index = om.find_index(last_data["column_name"],compare_arg[1])
         o_index = om.find_index(last_data["column_name"],compare_arg[2])
-
-        if first_data["data"][0][f_index] == last_data["data"][0][l_index]:
-            return last_data["data"][0][o_index]
+        for idx_data in last_data["data"]:
+            if first_data["data"][0][f_index] == idx_data[l_index]:
+                return idx_data[o_index]
+        return None
     except IndexError as e:
         print(f'❌ IndexError from query_item():{e}')
     except:
