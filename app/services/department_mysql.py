@@ -22,7 +22,7 @@ def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept
     except Exception as e:
         print(f'❌ Unknow error from add_dept() : {e}')
         return False
-    
+
 @regulate(0b1101)
 def update_dept(conn:pymysql.Connection ,dept_name:str,new_dept_name:str = None ,dept_code: str = None ,parent_dept_id:str = None,manager_employee_id:str = None):
     try:
@@ -46,7 +46,18 @@ def update_dept(conn:pymysql.Connection ,dept_name:str,new_dept_name:str = None 
     except Exception as e:
         print(f'❌ Unknow error from update_dept() : {e}')
         return False
-    
+@regulate(0b1101)
+def delete_dept(conn:pymysql.Connection ,dept_name:str):
+    try:
+        if om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"]:
+            if om.mysql_delete_dict_safe(conn,"department",{"dept_name":dept_name}):
+                return True
+        else:
+            print("❌ Department name/code duplication from delete_dept()")
+            return False
+    except Exception as e:
+        print(f'❌ Unknow error from delete_dept() : {e}')
+        return False
 #岗位 
 @regulate(0b1101)
 def add_position(conn:pymysql.Connection,position_name:str,dept_name:str,position_level:str = None,headcount_budget:int = 0,description:str = None,status:int = 1):
