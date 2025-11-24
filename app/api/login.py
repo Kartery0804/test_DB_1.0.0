@@ -13,6 +13,7 @@ from app.services import connect_mysql as cm
 @api_bp.route('/test_connect', methods=['GET'])
 def test_connect():
     return {
+        "status": True,
         "column_name": ["server"],
             "data": [
                 [
@@ -53,7 +54,7 @@ def login():
         }
         return response
     except Exception as e:
-        return jsonify({"column_name": ["error"],"data": [str(e)]})
+        return jsonify({"column_name": ["error"],"data": [[str(e)]]})
     finally:
         conn.close()
     

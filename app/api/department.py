@@ -45,15 +45,15 @@ def dept_create():
             if dm.add_dept(conn,data["dept_name"],data["dept_code"],r_flag = regulate_code):
                 response = dm.read_info(conn,"department",{"dept_name":data["dept_name"]},r_flag = regulate_code)
             else:
-                response = {"column_name": ["error"],"data": ["Maybe Department name/code duplication from add_dept()"]}
+                response = {"column_name": ["error"],"data": [["Maybe Department name/code duplication from add_dept()"]]}
             
         else:
-            response = {"column_name": ["error"],"data": ["Unable to verify login"]}
+            response = {"column_name": ["error"],"data": [["Unable to verify login"]]}
             response["regulate_code"] = regulate_code
         response["status"] = status
         return response
     except Exception as e:
-        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [str(e)]})
+        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)]]})
     finally:
         conn.close()
         
@@ -72,14 +72,14 @@ def dept_delete():
             if dm.delete_dept(conn,data["dept_name"],r_flag = regulate_code):
                 response = dm.read_info(conn,"department",r_flag = regulate_code)
             else:
-                response = {"column_name": ["error"],"data": ["Maybe Department name duplication from delete_dept()"]}
+                response = {"column_name": ["error"],"data": [["Maybe Department name duplication from delete_dept()"]]}
             
         else:
-            response = {"column_name": ["error"],"data": ["Unable to verify login"]}
+            response = {"column_name": ["error"],"data": [["Unable to verify login"]]}
             response["regulate_code"] = regulate_code
         response["status"] = status
         return response
     except Exception as e:
-        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [str(e)]})
+        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)]]})
     finally:
         conn.close()
