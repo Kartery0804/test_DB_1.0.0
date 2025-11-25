@@ -24,20 +24,20 @@ def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept
         return False
 
 @regulate(0b1101)
-def update_dept(conn:pymysql.Connection ,dept_name:str,new_dept_name:str = None ,dept_code: str = None ,parent_dept_id:str = None,manager_employee_id:str = None):
+def update_dept(conn:pymysql.Connection ,dept_name:str,new_dept_name:str = None ,dept_code: str = None ,parent_dept_id:str = None,manager_employee_id:str = None,status:int = None):
     try:
         field_mapping = {
             "dept_name": new_dept_name,
             "dept_code": dept_code, 
             "parent_dept_id": parent_dept_id,
-            "manager_employee_id": manager_employee_id
+            "manager_employee_id": manager_employee_id,
+            "status":status
         }
 
         update_data = {
             "updated_at": om.datetime.now(),
             **{k: v for k, v in field_mapping.items() if v is not None}
         }
-
         if om.mysql_update_dict(conn,"department",update_data,{"dept_name":dept_name}) != None:
             return True
         else:
@@ -58,6 +58,7 @@ def delete_dept(conn:pymysql.Connection ,dept_name:str):
     except Exception as e:
         print(f'❌ Unknow error from delete_dept() : {e}')
         return False
+
 #岗位 
 @regulate(0b1101)
 def add_position(conn:pymysql.Connection,position_name:str,dept_name:str,position_level:str = None,headcount_budget:int = 0,description:str = None,status:int = 1):

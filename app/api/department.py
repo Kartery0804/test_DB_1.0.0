@@ -83,3 +83,39 @@ def dept_delete():
         return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)]]})
     finally:
         conn.close()
+@api_bp.route('/dept/update', methods=['POST'])
+def dept_update():
+    """
+    'username':str.
+    "passward":str
+    dept_name: str,
+    new_dept_name: str = None,
+    dept_code: str = None,
+    parent_dept_id: str = None,
+    manager_employee_id: str = None,
+    status: int = None
+    """
+    if not request.is_json:
+        return jsonify({"error":"Invalid type of post"})
+    try:
+        data = request.get_json()
+        conn = cm.connect_mysql(*cm.default)
+        status = lm.login_mysql(conn,data['username'],data['password'])
+        regulate_code = 0
+        response = None
+        if status:
+            regulate_code = lm.get_regulate_code(conn,data['username'])
+            if dm.update_dept(conn,data['dept_name'],data['new_dept_name'],data['dept_code'],data['parent_dept_id'],data['manager_employee_id'],data['status'],r_flag = regulate_code):
+                response = dm.read_info(conn,"department",{"dept_name":data["dept_name"]},r_flag = regulate_code)
+            else:
+                response = {"column_name": ["error"],"data": [["Maybe Department name duplication from update_dept()"]]}
+            
+        else:
+            response = {"column_name": ["error"],"data": [["Unable to verify login"]]}
+            response["regulate_code"] = regulate_code
+        response["status"] = status
+        return response
+    except Exception as e:
+        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)],["dept_update 123"]]})
+    finally:
+        conn.close()
