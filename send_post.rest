@@ -26,7 +26,7 @@ Content-Type: application/json
 {
     "username":"Ailier",
     "password":"seeyoutomorrow",
-    "regulate_code":15
+    "regulate_code":0
 }
 
 ###
@@ -49,7 +49,54 @@ Content-Type: application/json
     "task":"show",
     "table_name": "department",
     "regulate_code":0,
-    
+    "parent_dept_name":null,
     "dept_name":"Logistics Dept",
-    "dept_code":"00010"
+    "dept_code":"3678890"
+}
+
+###
+POST http://127.0.0.1:25000/api/dept/delete
+Content-Type: application/json
+
+{
+    "username":"kartery",
+    "password":"my_password",
+    "table_name": "department",
+    "regulate_code":0,
+    "dept_name":"Animation Dept2"
+}
+
+###
+POST http://127.0.0.1:25000/api/dept/update
+Content-Type: application/json
+
+{
+    "username":"kartery",
+    "password":"my_password",
+    "regulate_code":0,
+    "dept_name":"Animation Dept1000",
+    "parent_dept_name":"Logistics Dept",
+    "status":1,
+    "dept_code":"1111",
+    "manager_employee_id":null,
+    "new_dept_name":"Animation Dept1"
+}
+
+###
+GET http://127.0.0.1:25000/api/test_connect
+
+
+###
+POST http://127.0.0.1:25000/api/dept/select
+Content-Type: application/json
+
+{
+    "username":"kartery",
+    "password":"my_password",
+    "regulate_code":0,
+    "dept_name":"Animation Dept1",
+    "parent_dept_name":"Logistics Dept123",
+    "status":1,
+    "dept_code":"1111",
+    "manager_employee_id":null
 }

@@ -7,10 +7,29 @@ from app.utils import easy_query as eq
 
 #部门
 @regulate(0b1101)
-def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept_id:str = None,manager_employee_id:str = None):
+def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept_name:str = None,manager_employee_id:str = None,status:int=None):
     try:
+        parent_dept_id = None
+        if parent_dept_name:
+            parent_data = om.mysql_select_dict(conn,"department",{"dept_name":parent_dept_name})["data"]
+            if parent_data:
+                parent_dept_id = parent_data[0][0]
+            
+        field_mapping = {
+            "dept_name":dept_name,
+            "dept_code": dept_code, 
+            "parent_dept_id": parent_dept_id,
+            "manager_employee_id": manager_employee_id,
+            "status":status
+        }
+
+        add_data = {
+            "updated_at": om.datetime.now(),
+            **{k: v for k, v in field_mapping.items() if v is not None}
+        }
+            
         if not om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"] and not om.mysql_select_dict(conn,"department",{"dept_code":dept_code})["data"]:
-            if om.mysql_insert_dict(conn,"department",{"dept_name":dept_name,"dept_code":dept_code,"parent_dept_id":parent_dept_id,"manager_employee_id":manager_employee_id}) != None:
+            if om.mysql_insert_dict(conn,"department",add_data) != None:
                 return True
             else:
                 raise Exception("error from mysql_insert_dict() ")
@@ -24,8 +43,14 @@ def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept
         return False
 
 @regulate(0b1101)
-def update_dept(conn:pymysql.Connection ,dept_name:str,new_dept_name:str = None ,dept_code: str = None ,parent_dept_id:str = None,manager_employee_id:str = None,status:int = None):
+def update_dept(conn:pymysql.Connection ,dept_name:str,new_dept_name:str = None ,dept_code: str = None ,parent_dept_name:str = None,manager_employee_id:str = None,status:int = None):
     try:
+        parent_dept_id = None
+        if parent_dept_name:
+            parent_data = om.mysql_select_dict(conn,"department",{"dept_name":parent_dept_name})["data"]
+            if parent_data:
+                parent_dept_id = parent_data[0][0]
+
         field_mapping = {
             "dept_name": new_dept_name,
             "dept_code": dept_code, 
@@ -58,6 +83,38 @@ def delete_dept(conn:pymysql.Connection ,dept_name:str):
     except Exception as e:
         print(f'❌ Unknow error from delete_dept() : {e}')
         return False
+
+@regulate(0b1101)
+def select_dept(conn:pymysql.Connection ,dept_name:str = None,dept_code: str = None ,parent_dept_name:str = None,manager_employee_id:str = None,status:int = None):
+    try:
+        parent_dept_id = None
+        if parent_dept_name:
+            parent_data = om.mysql_select_dict(conn,"department",{"dept_name":parent_dept_name})["data"]
+            if parent_data:
+                parent_dept_id = parent_data[0][0]
+            else:
+                return {"column_name": ["error"],"data": [["input wrong form"]]}
+        
+        field_mapping = {
+            "dept_name": dept_name,
+            "dept_code": dept_code, 
+            "parent_dept_id": parent_dept_id,
+            "manager_employee_id": manager_employee_id,
+            "status":status
+        }
+
+        select_data = {
+            **{k: v for k, v in field_mapping.items() if v is not None}
+        }
+        dept_data = om.mysql_select_dict(conn,"department",select_data)
+        if  dept_data["data"]:
+            return dept_data
+        else:
+            raise Exception("error from mysql_select_dict()")
+
+    except Exception as e:
+        print(f'❌ Unknow error from select_dept() : {e}')
+        return {"column_name": ["error"],"data": [["Maybe Department name duplication from select_dept()"]]}
 
 #岗位 
 @regulate(0b1101)
@@ -142,32 +199,6 @@ def read_info(conn:pymysql.Connection,table_name:str,where_arg: dict = None):
     except Exception as e:
         print(f'❌ Unknow error from read_info() : {e}')
         return False
-
-
-@regulate(0b1101)
-def appoint(conn:pymysql.Connection):
-    """任命"""
-    try:
-        
-        return True
-
-    except Exception as e:
-        print(f'❌ Unknow error from appoint() : {e}')
-        return False
-
-@regulate(0b1101)
-def dismiss():
-    """解职"""
-    try:
-
-        return True
-
-    except Exception as e:
-        print(f'❌ Unknow error from appoint() : {e}')
-        return False
-
-
-
 
 if __name__ == "__main__":
     conn = None
