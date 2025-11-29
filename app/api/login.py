@@ -36,17 +36,17 @@ def login():
             regulate_code = lm.get_regulate_code(conn,data['username'],0)
         response = {
             "status": True,
-            "regulate_code":13,
+            "regulate_code":regulate_code,
             "status_code":"0000",
             "column_name": ["status","regulate_code","received"],
             "data": [
                 [
                     status,
                     regulate_code,
-                    str(data)
+                    "User: "+data["username"]
                 ],
                 [
-                    False,
+                    True,
                     15,
                     "Hello user here is admin's responce"
                 ]
