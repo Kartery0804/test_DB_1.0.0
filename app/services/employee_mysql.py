@@ -81,7 +81,7 @@ def update_employee(
             return False
         if dept_name!=None:
             dept_id = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})['data'][0][0]
-        if dept_name!=None:
+        if position_name!=None:
             position_id = om.mysql_select_dict(conn,"position",{"position_name":position_name})['data'][0][0]
         if manager_employee_no!=None:
             manager_employee_id = om.mysql_select_dict(conn,"employee",{"manager_employee_no":manager_employee_no})['data'][0][0]
@@ -130,6 +130,95 @@ def update_employee(
         print("❌ insert the employee error from add_employee()")
         return False
     
+@regulate(0b1000)
+def select_employee(
+    conn:pymysql.Connection,
+    employee_no:str = None,
+    name_cn:str = None,
+    hire_date:str = None,
+    employment_type:str = None,
+    dept_name:str = None,
+    status:str = None,
+    position_name:str = None,
+    manager_employee_no:str = None,
+    #--
+    name_en:str = None,
+    gender:str = None,
+    date_of_birth:str = None,
+    id_number:str = None,
+    phone:str = None,
+    email:str = None,
+    probation_end_date:str = None,
+    work_location:str = None,
+    salary_base:str = None,
+    bank_name:str = None,
+    bank_account_no:str = None,
+    social_city:str = None,
+    address:str = None,
+    emergency_name:str = None,
+    emergency_phone:str = None,
+    photo_url:str = None,
+    username:str = None,
+    **kwargs
+    ):
+    try:
+        updated_by = dept_id = position_id = manager_employee_id = None
+        if username!=None:
+            updated_by = om.mysql_select_dict(conn,"sys_user",{"username":username})['data'][0][0]
+        else:
+            print("❌ select the updated_by_id error from add_employee()")
+            return False
+        if dept_name!=None:
+            dept_id = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})['data'][0][0]
+        if position_name!=None:
+            position_id = om.mysql_select_dict(conn,"position",{"position_name":position_name})['data'][0][0]
+        if manager_employee_no!=None:
+            manager_employee_id = om.mysql_select_dict(conn,"employee",{"manager_employee_no":manager_employee_no})['data'][0][0]
+    except:
+        print("❌ select the id error from add_employee()")
+        return {"column_name": ["error"],"data": [["select the id error from add_employee()"]]} 
+    field_mapping = {
+            "employee_no":employee_no,
+            "name_cn":name_cn,
+            "hire_date":hire_date,
+            "employment_type":employment_type,
+            "dept_id":dept_id,
+            "position_id":position_id,
+            "manager_employee_id":manager_employee_id,
+            "status":status,
+            "updated_by":updated_by,
+            "name_en":name_en,
+            "gender":gender,
+            "date_of_birth":date_of_birth,
+            "id_number":id_number,
+            "phone":phone,
+            "email":email,
+            "probation_end_date":probation_end_date,
+            "work_location":work_location,
+            "salary_base":salary_base,
+            "bank_name":bank_name,
+            "bank_account_no":bank_account_no,
+            "social_city":social_city,
+            "address":address,
+            "emergency_name":emergency_name,
+            "emergency_phone":emergency_phone,
+            "photo_url":photo_url
+        }
+
+    select_data = {
+            **{k: v for k, v in field_mapping.items() if v is not None}
+        }
+    
+    try:
+        data = om.mysql_select_dict(conn,"employee",select_data)
+        print(f"✅ add success from add_employee()")
+        return data
+    except:
+        print("❌ insert the employee error from add_employee()")
+        return {"column_name": ["error"],"data": [["insert the employee error from add_employee()"]]}
+
+
+
 
 if __name__ == "__main__":
     conn = None
@@ -140,19 +229,20 @@ if __name__ == "__main__":
         data = {
             "username":"kartery",
             "employee_no":"12314789",
-            "name_cn":"李四",
+            #"name_cn":"李四",
             #"hire_date":"2025-1-1",
             #"employment_type":"full",
             #"dept_name":"Animation Dept",
             #"position_name":"Concept_Art",
             #"manager_employee_name":None,
-            "status":"active"
+            "status":"on_leave"
+            #"salary_base":1000
         }
         #操作 
         #add_employee(conn,**data,r_flag = 0b1111)
         update_employee(conn,**data,r_flag = 0b1111)
         #打印结果
-        print(om.mysql_select_dict(conn,"employee",{"name_cn":"李四"}))
+        print(select_employee(conn,**data,r_flag = 0b1111))
 
 
     except:
