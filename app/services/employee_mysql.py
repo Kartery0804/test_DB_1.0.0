@@ -31,11 +31,12 @@ def add_employee(conn:pymysql.Connection,employee_no:str,name_cn:str,hire_date:s
 
     add_data = {
             "updated_at": om.datetime.now(),
-            **{k: v for k, v in field_mapping.items() if v is not None}
+            **{k: v for k, v in field_mapping.items() if v is not None and v != ""}
         }
     
     try:
         om.mysql_insert_dict(conn,"employee",add_data)
+        return True
     except:
         print("❌ insert the employee error from add_employee()")
         return False
@@ -44,6 +45,7 @@ def add_employee(conn:pymysql.Connection,employee_no:str,name_cn:str,hire_date:s
 def update_employee(
     conn:pymysql.Connection,
     employee_no:str,
+    username:str = None,
     employee_no_new:str = None,
     name_cn:str = None,
     hire_date:str = None,
@@ -69,7 +71,6 @@ def update_employee(
     emergency_name:str = None,
     emergency_phone:str = None,
     photo_url:str = None,
-    username:str = None,
     **kwargs
     ):
     try:
@@ -119,12 +120,12 @@ def update_employee(
 
     update_data = {
             "updated_at": om.datetime.now(),
-            **{k: v for k, v in field_mapping.items() if v is not None}
+            **{k: v for k, v in field_mapping.items() if v is not None and v != ""}
         }
     
     try:
         us = om.mysql_update_dict(conn,"employee",update_data,{"employee_no":employee_no})
-        print(f"✅ add success from add_employee():{us}")
+        print(f"✅ update success from add_employee():{us}")
         return True
     except:
         print("❌ insert the employee error from add_employee()")
@@ -134,6 +135,7 @@ def update_employee(
 def select_employee(
     conn:pymysql.Connection,
     employee_no:str = None,
+    updated_by_name:str = None,
     name_cn:str = None,
     hire_date:str = None,
     employment_type:str = None,
@@ -158,16 +160,12 @@ def select_employee(
     emergency_name:str = None,
     emergency_phone:str = None,
     photo_url:str = None,
-    username:str = None,
     **kwargs
     ):
     try:
         updated_by = dept_id = position_id = manager_employee_id = None
-        if username!=None:
-            updated_by = om.mysql_select_dict(conn,"sys_user",{"username":username})['data'][0][0]
-        else:
-            print("❌ select the updated_by_id error from add_employee()")
-            return False
+        if updated_by_name!=None:
+            updated_by = om.mysql_select_dict(conn,"sys_user",{"username":updated_by_name})['data'][0][0]
         if dept_name!=None:
             dept_id = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})['data'][0][0]
         if position_name!=None:
@@ -175,8 +173,8 @@ def select_employee(
         if manager_employee_no!=None:
             manager_employee_id = om.mysql_select_dict(conn,"employee",{"manager_employee_no":manager_employee_no})['data'][0][0]
     except:
-        print("❌ select the id error from add_employee()")
-        return {"column_name": ["error"],"data": [["select the id error from add_employee()"]]} 
+        print("❌ select the id error from select_employee()")
+        return {"column_name": ["error"],"data": [["select the id error from select_employee()"]]} 
     field_mapping = {
             "employee_no":employee_no,
             "name_cn":name_cn,
@@ -206,12 +204,11 @@ def select_employee(
         }
 
     select_data = {
-            **{k: v for k, v in field_mapping.items() if v is not None}
+            **{k: v for k, v in field_mapping.items() if v is not None and v != ""}
         }
-    
     try:
         data = om.mysql_select_dict(conn,"employee",select_data)
-        print(f"✅ add success from add_employee()")
+        print(f"✅ select success from add_employee()")
         return data
     except:
         print("❌ insert the employee error from add_employee()")

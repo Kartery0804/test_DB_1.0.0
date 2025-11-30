@@ -31,7 +31,7 @@ def login():
         data = request.get_json()
         conn = cm.connect_mysql(*cm.default)
         status = lm.login_mysql(conn,data['username'],data['password'],r_flag = data['regulate_code'])
-        regulate_code = "-1"
+        regulate_code = 0
         if status:
             regulate_code = lm.get_regulate_code(conn,data['username'],0)
         response = {
