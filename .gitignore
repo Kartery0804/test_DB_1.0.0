@@ -3,3 +3,4 @@ tests/
 database/data
 database/sql
 */*/__pycache__
+app/services/config_mysql.py

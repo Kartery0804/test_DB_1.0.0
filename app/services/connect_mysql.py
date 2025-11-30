@@ -2,6 +2,9 @@ import pymysql
 from pymysql import OperationalError
 
 from pymysql.constants import FIELD_TYPE
+from app.services import config_mysql as cf
+
+default = cf.default
 
 # 创建自定义转换字典，将 DATETIME 保持为字符串
 conv = pymysql.converters.conversions.copy()
@@ -12,7 +15,7 @@ conv[FIELD_TYPE.TIMESTAMP] = str  # 保持 TIMESTAMP 为字符串
 conv[FIELD_TYPE.DATE] = str       # 保持 DATE 为字符串
 conv[FIELD_TYPE.TIME] = str       # 保持 TIME 为字符串
 
-default = ("localhost","root","Pizza0804","srs_v1.0")
+
 
 """谨记自行关闭连接对象，在异常处理中做好处理"""
 def connect_mysql(host, user, passwd, database):
