@@ -78,10 +78,38 @@ def renew_contract(conn:pymysql.Connection ,contract_no: str ,start_date:str,end
             else:
                 raise Exception("error from mysql_update_dict() 1112")
         else:
-            print("❌ Department name/code duplication from add_contract() 1122")
+            print("❌ Department name/code duplication from renew_contract() 1122")
             return False
         
         
     except Exception as e:
-        print(f'❌ Unknow error from add_contract() : {e} 1132')
+        print(f'❌ Unknow error from renew_contract() : {e} 1132')
+        return False
+    
+@regulate(0b1101)
+def termination_contract(conn:pymysql.Connection ,contract_no: str ,termination_reason:str=None,**kwargs):
+    try:
+            
+        field_mapping = {
+            "termination_reason":termination_reason,
+            'contract_status':'terminated'
+        }
+
+        add_data = {
+            "updated_at":om.datetime.now(),
+            "termination_date":om.datetime.now(),
+            **{k: v for k, v in field_mapping.items() if v is not None and v != ""}
+        }
+        if om.mysql_select_dict(conn,"contract",{"contract_no":contract_no})["data"]:
+            if om.mysql_update_dict(conn,"contract",add_data,{"contract_no":contract_no}) != None:
+                return True
+            else:
+                raise Exception("error from termination_contract() 1113")
+        else:
+            print("❌ contract node duplication from termination_contract() 1123")
+            return False
+        
+        
+    except Exception as e:
+        print(f'❌ Unknow error from termination_contract() : {e} 1133')
         return False

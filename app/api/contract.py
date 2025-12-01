@@ -24,7 +24,7 @@ def cont_add():
     file_url:str=None 合同扫描件
     """
     if not request.is_json:
-        return jsonify({"error":"Invalid type of post"})
+        return jsonify({"error":"Invalid type of post1111"})
     try:
         data = request.get_json()
         conn = cm.connect_mysql(*cm.default)
@@ -36,15 +36,15 @@ def cont_add():
             if tm.add_contract(conn,**data,r_flag = regulate_code):
                 response = dm.read_info(conn,"contract",{"contract_no":data['contract_no']},r_flag = regulate_code)
             else:
-                response = {"column_name": ["error"],"data": [["Maybe contract no/type duplication from cont_add()1111"]]}
+                response = {"column_name": ["error"],"data": [["Maybe contract no/type duplication from cont_add()1121"]]}
             
         else:
-            response = {"column_name": ["error"],"data": [["Unable to verify login1121"]]}
+            response = {"column_name": ["error"],"data": [["Unable to verify login1131"]]}
             response["regulate_code"] = regulate_code
         response["status"] = status
         return response
     except Exception as e:
-        return jsonify({"regulate_code":0,"column_name": ["error1131"],"data": [[str(e)]]})
+        return jsonify({"regulate_code":0,"column_name": ["error1141"],"data": [[str(e)]]})
     finally:
         conn.close()
 
@@ -58,14 +58,13 @@ def cont_renew():
     start_date:str 生效日期,
 
     
-    contract_type :str=None fixed/open/intern ,
     probation_months:int=None 试用期（月）,
     termination_date:str=None 解约日期,
     termination_reason:str=None 解约原因,
     file_url:str=None 合同扫描件
     """
     if not request.is_json:
-        return jsonify({"error":"Invalid type of post"})
+        return jsonify({"error":"Invalid type of post1112"})
     try:
         data = request.get_json()
         conn = cm.connect_mysql(*cm.default)
@@ -77,14 +76,48 @@ def cont_renew():
             if tm.renew_contract(conn,**data,r_flag = regulate_code):
                 response = dm.read_info(conn,"contract",{"contract_no":data['contract_no']},r_flag = regulate_code)
             else:
-                response = {"column_name": ["error"],"data": [["Maybe contract no/type duplication from cont_renew()1112"]]}
+                response = {"column_name": ["error"],"data": [["Maybe contract no/type duplication from cont_renew()1122"]]}
             
         else:
-            response = {"column_name": ["error"],"data": [["Unable to verify login1122"]]}
+            response = {"column_name": ["error"],"data": [["Unable to verify login1132"]]}
             response["regulate_code"] = regulate_code
         response["status"] = status
         return response
     except Exception as e:
-        return jsonify({"regulate_code":0,"column_name": ["error1132"],"data": [[str(e)]]})
+        return jsonify({"regulate_code":0,"column_name": ["error1142"],"data": [[str(e)]]})
+    finally:
+        conn.close()
+
+@api_bp.route('/cont/temin', methods=['POST'])
+def cont_termination():
+    """
+    username :str 用户,
+    passward :str 密码,
+    contract_no: str 合同编号,
+
+    termination_reason:str=None 解约原因,
+    """
+    if not request.is_json:
+        return jsonify({"error":"Invalid type of post1113"})
+    try:
+        data = request.get_json()
+        conn = cm.connect_mysql(*cm.default)
+        status = lm.login_mysql(conn,data['username'],data['password'])
+        regulate_code = 0
+        response = None
+        if status:
+            regulate_code = lm.get_regulate_code(conn,data['username'])
+            if tm.termination_contract(conn,**data,r_flag = regulate_code):
+                response = dm.read_info(conn,"contract",{"contract_no":data['contract_no']},r_flag = regulate_code)
+            else:
+                response = {"column_name": ["error"],"data": [["Maybe contract no/type duplication from cont_termination()1123"]]}
+            
+        else:
+            response = {"column_name": ["error"],"data": [["Unable to verify login1133"]]}
+            response["regulate_code"] = regulate_code
+        response["status"] = status
+        return response
+    except Exception as e:
+        return jsonify({"regulate_code":0,"column_name": ["error1143"],"data": [[str(e)]]})
     finally:
         conn.close()
