@@ -208,12 +208,66 @@ def select_employee(
         }
     try:
         data = om.mysql_select_dict(conn,"employee",select_data)
-        print(f"✅ select success from add_employee()")
+        print(f"✅ select success from select_employee()")
         return data
     except:
-        print("❌ insert the employee error from add_employee()")
-        return {"column_name": ["error"],"data": [["insert the employee error from add_employee()"]]}
+        print("❌ insert the employee error from select_employee()")
+        return {"column_name": ["error"],"data": [["insert the employee error from select_employee()"]]}
 
+@regulate(0b1101)
+def rework_employee_pos(
+    conn:pymysql.Connection,
+    employee_no:str,
+    username:str = None,
+    employment_type:str = None,
+    new_dept_name:str = None,
+    new_position_name:str = None,
+    manager_employee_no:str = None,
+    work_location:str = None,
+    salary_base:str = None,
+    **kwargs
+    ):
+    try:
+        updated_by = new_dept_id = new_position_id = manager_employee_id = None
+        if username!=None:
+            updated_by = om.mysql_select_dict(conn,"sys_user",{"username":username})['data'][0][0]
+        else:
+            print("❌ select the updated_by_id error from rework_employee_pos()")
+            return False
+        new_dept_id = om.mysql_select_dict(conn,"department",{"dept_name":new_dept_name})['data'][0][0]
+        new_position_id = om.mysql_select_dict(conn,"position",{"position_name":new_position_name})['data'][0][0]
+        if manager_employee_no!=None:
+            manager_employee_id = om.mysql_select_dict(conn,"employee",{"manager_employee_no":manager_employee_no})['data'][0][0]
+    except:
+        print("❌ select the id error from rework_employee_pos()")
+        #return False
+    
+    field_mapping = {
+            "employment_type":employment_type,
+            "dept_id":new_dept_id,
+            "position_id":new_position_id,
+            "manager_employee_id":manager_employee_id,
+            "updated_by":updated_by,
+            "work_location":work_location,
+            "salary_base":salary_base
+        }
+
+    update_data = {
+            "updated_at": om.datetime.now(),
+            **{k: v for k, v in field_mapping.items() if v is not None and v != ""}
+        }
+    
+    try:
+        if om.mysql_select_dict(conn,"employee",{"employee_no":employee_no})["data"] and om.mysql_select_dict(conn,"department",{"dept_id":new_dept_id})["data"] and om.mysql_select_dict(conn,"position",{"position_id":new_position_id})["data"]:
+            us = om.mysql_update_dict(conn,"employee",update_data,{"employee_no":employee_no})
+            print(f"✅ update success from rework_employee_pos():{us}")
+            return True
+        else:
+            print("did have new position/department or this employee")
+            return False
+    except:
+        print("❌ insert the employee error from rework_employee_pos()")
+        return False
 
 
 

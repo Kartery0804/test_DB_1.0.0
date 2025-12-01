@@ -17,7 +17,6 @@ def empl_create():
     "name_cn": "王五",
     "hire_date": "2025-11-30",
     "employment_type": "intern",
-    "dept_name": "Animation Dept",
     "status": "active",
     "position_name": "Concept_Art"
 
@@ -94,7 +93,7 @@ def empl_update():
         response = None
         if status:
             regulate_code = lm.get_regulate_code(conn,data['username'])
-            if em.select_employee(conn,**data,r_flag = regulate_code)['data']:
+            if em.select_employee(conn,data["employee_no"],r_flag = regulate_code)['data']:
                 em.update_employee(conn,**data,r_flag = regulate_code)
                 response = em.select_employee(conn,data['employee_no'],r_flag = regulate_code)
             else:
@@ -168,4 +167,41 @@ def empl_select():
     finally:
         conn.close()
 
-
+@api_bp.route('/empl/reworkpos', methods=['POST'])
+def empl_rework_pos():
+    """
+    'username':str,
+    "passward":str,
+    employee_no:str,
+    new_dept_name: str = None,
+    status: int = None,
+    employment_type:str = None,
+    new_position_name:str = None,
+    manager_employee_no:str = None,
+    work_location:str = None,
+    salary_base:str = None
+    """
+    if not request.is_json:
+        return {"column_name": ["error"],"data": [["Invalid type of post 1014: from empl_rework_pos())"]]}
+    try:
+        data = request.get_json()
+        conn = cm.connect_mysql(*cm.default)
+        status = lm.login_mysql(conn,data['username'],data['password'])
+        regulate_code = 0
+        response = None
+        if status:
+            regulate_code = lm.get_regulate_code(conn,data['username'])
+            if em.rework_employee_pos(conn,**data,r_flag = regulate_code):
+                response = em.select_employee(conn,data['employee_no'],r_flag = regulate_code)
+            else:
+                response = {"column_name": ["error"],"data": [["unknow error 1024: from empl_rework_pos()"]]}
+            
+        else:
+            response = {"column_name": ["error"],"data": [["Unable to verify login 1034: from empl_rework_pos()"]]}
+            response["regulate_code"] = regulate_code
+        response["status"] = status
+        return response
+    except Exception as e:
+        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)],["unknow error 1044:from empl_rework_pos()"]]})
+    finally:
+        conn.close()

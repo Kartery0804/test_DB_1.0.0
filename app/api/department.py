@@ -42,7 +42,7 @@ def dept_create():
         response = None
         if status:
             regulate_code = lm.get_regulate_code(conn,data['username'])
-            if dm.add_dept(conn,data["dept_name"],data["dept_code"],data["parent_dept_name"],r_flag = regulate_code):
+            if dm.add_dept(conn,**data,r_flag = regulate_code):
                 response = dm.read_info(conn,"department",{"dept_name":data["dept_name"]},r_flag = regulate_code)
             else:
                 response = {"column_name": ["error"],"data": [["Maybe Department name/code duplication from add_dept()"]]}
@@ -105,8 +105,8 @@ def dept_update():
         response = None
         if status:
             regulate_code = lm.get_regulate_code(conn,data['username'])
-            if dm.update_dept(conn,data['dept_name'],data['new_dept_name'],data['dept_code'],data['parent_dept_name'],data['manager_employee_id'],data['status'],r_flag = regulate_code):
-                response = dm.read_info(conn,"department",{"dept_name":data["dept_name"]},r_flag = regulate_code)
+            if dm.update_dept(conn,**data,r_flag = regulate_code):
+                response = {"column_name": ["info"],"data": [["update success"]]}
             else:
                 response = {"column_name": ["error"],"data": [["Maybe Department name duplication from update_dept()"]]}
             
@@ -140,7 +140,7 @@ def dept_select():
         response = None
         if status:
             regulate_code = lm.get_regulate_code(conn,data['username'])
-            select_data = dm.select_dept(conn,data['dept_name'],data['dept_code'],data['parent_dept_name'],data['manager_employee_id'],data['status'],r_flag = regulate_code)
+            select_data = dm.select_dept(conn,**data,r_flag = regulate_code)
             if select_data:
                 response = select_data
             else:

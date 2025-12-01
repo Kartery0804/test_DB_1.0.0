@@ -2,18 +2,23 @@ import pymysql
 from app.services import operation_mysql as om
 from app.utils.permission import regulate
 from app.utils import easy_query as eq
-
+from app.services import config_mysql as cf
 #权限值0b1101，仅供同时拥有查询，审核，创建权限的用户访问
 
 #部门
 @regulate(0b1101)
-def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept_name:str = None,manager_employee_id:str = None,status:int=None):
+def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept_name:str = None,manager_employee_no:str = None,status:int=None,**kwargs):
     try:
-        parent_dept_id = None
+        parent_dept_id = manager_employee_id = None
         if parent_dept_name:
             parent_data = om.mysql_select_dict(conn,"department",{"dept_name":parent_dept_name})["data"]
             if parent_data:
                 parent_dept_id = parent_data[0][0]
+        if manager_employee_no:
+            manager_employee_data = om.mysql_select_dict(conn,"employee",{"employee_no":manager_employee_no})["data"]
+            if manager_employee_data:
+                manager_employee_id = manager_employee_data[0][0]
+
             
         field_mapping = {
             "dept_name":dept_name,
@@ -27,7 +32,7 @@ def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept
             "updated_at": om.datetime.now(),
             **{k: v for k, v in field_mapping.items() if v is not None}
         }
-            
+        print(add_data)
         if not om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"] and not om.mysql_select_dict(conn,"department",{"dept_code":dept_code})["data"]:
             if om.mysql_insert_dict(conn,"department",add_data) != None:
                 return True
@@ -43,13 +48,17 @@ def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept
         return False
 
 @regulate(0b1101)
-def update_dept(conn:pymysql.Connection ,dept_name:str,new_dept_name:str = None ,dept_code: str = None ,parent_dept_name:str = None,manager_employee_id:str = None,status:int = None):
+def update_dept(conn:pymysql.Connection ,dept_name:str,new_dept_name:str = None ,dept_code: str = None ,parent_dept_name:str = None,manager_employee_no:str = None,status:int = None,**kwargs):
     try:
-        parent_dept_id = None
+        parent_dept_id = manager_employee_id = None
         if parent_dept_name:
             parent_data = om.mysql_select_dict(conn,"department",{"dept_name":parent_dept_name})["data"]
             if parent_data:
                 parent_dept_id = parent_data[0][0]
+        if manager_employee_no:
+            manager_employee_data = om.mysql_select_dict(conn,"employee",{"employee_no":manager_employee_no})["data"]
+            if manager_employee_data:
+                manager_employee_id = manager_employee_data[0][0]
 
         field_mapping = {
             "dept_name": new_dept_name,
@@ -85,15 +94,17 @@ def delete_dept(conn:pymysql.Connection ,dept_name:str):
         return False
 
 @regulate(0b1101)
-def select_dept(conn:pymysql.Connection ,dept_name:str = None,dept_code: str = None ,parent_dept_name:str = None,manager_employee_id:str = None,status:int = None):
+def select_dept(conn:pymysql.Connection ,dept_name:str = None,dept_code: str = None ,parent_dept_name:str = None,manager_employee_no:str = None,status:int = None,**kwargs):
     try:
-        parent_dept_id = None
+        parent_dept_id = manager_employee_id = None
         if parent_dept_name:
             parent_data = om.mysql_select_dict(conn,"department",{"dept_name":parent_dept_name})["data"]
             if parent_data:
                 parent_dept_id = parent_data[0][0]
-            else:
-                return {"column_name": ["error"],"data": [["input wrong form"]]}
+        if manager_employee_no:
+            manager_employee_data = om.mysql_select_dict(conn,"employee",{"employee_no":manager_employee_no})["data"]
+            if manager_employee_data:
+                manager_employee_id = manager_employee_data[0][0]
         
         field_mapping = {
             "dept_name": dept_name,
@@ -204,14 +215,14 @@ if __name__ == "__main__":
     conn = None
     try:
         from app.services import connect_mysql as cm
-        conn = cm.connect_mysql('localhost','root','Pizza0804','srs_v1.0')
+        conn = cm.connect_mysql(*cf.default)
         #部门测试
         #add_dept(conn,"Animation Dept",dept_code = "00002",r_flag = 0b1101)
         #update_dept(conn,"Animation Dept" ,dept_code = "00001",r_flag = 0b1101)
         #print(om.mysql_select_dict(conn,"department"))
 
-        #新增岗位
-        #add_position(conn,"Concept_Art","Animation Dept","1",0,"原画师",r_flag = 0b1101)
+        
+        add_position(conn,"Concept_Art1","Animation Dept","1",0,"原画师1",r_flag = 0b1101)
         #update_position(conn,"Concept_Art",dept_name="Animation Dept",headcount_budget = 10,r_flag = 0b1101)
         add_position(conn,"Mover","Logistics Dept","1",10,"搬货工",r_flag = 0b1101)
         #print(delete_position(conn,"Mover",r_flag = 0b1111))
