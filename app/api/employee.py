@@ -173,10 +173,11 @@ def empl_rework_pos():
     'username':str,
     "passward":str,
     employee_no:str,
-    new_dept_name: str = None,
+    new_dept_name:str,
+    new_position_name:str,
+
     status: int = None,
     employment_type:str = None,
-    new_position_name:str = None,
     manager_employee_no:str = None,
     work_location:str = None,
     salary_base:str = None

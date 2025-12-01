@@ -218,10 +218,10 @@ def select_employee(
 def rework_employee_pos(
     conn:pymysql.Connection,
     employee_no:str,
+    new_position_name:str,
+    new_dept_name:str,
     username:str = None,
     employment_type:str = None,
-    new_dept_name:str = None,
-    new_position_name:str = None,
     manager_employee_no:str = None,
     work_location:str = None,
     salary_base:str = None,
@@ -234,8 +234,10 @@ def rework_employee_pos(
         else:
             print("❌ select the updated_by_id error from rework_employee_pos()")
             return False
-        new_dept_id = om.mysql_select_dict(conn,"department",{"dept_name":new_dept_name})['data'][0][0]
-        new_position_id = om.mysql_select_dict(conn,"position",{"position_name":new_position_name})['data'][0][0]
+        if new_dept_name!=None:
+            new_dept_id = om.mysql_select_dict(conn,"department",{"dept_name":new_dept_name})['data'][0][0]
+        if new_position_name!=None:
+            new_position_id = om.mysql_select_dict(conn,"position",{"position_name":new_position_name})['data'][0][0]
         if manager_employee_no!=None:
             manager_employee_id = om.mysql_select_dict(conn,"employee",{"manager_employee_no":manager_employee_no})['data'][0][0]
     except:
@@ -263,7 +265,7 @@ def rework_employee_pos(
             print(f"✅ update success from rework_employee_pos():{us}")
             return True
         else:
-            print("did have new position/department or this employee")
+            print("❌ did have new position/department or this employee")
             return False
     except:
         print("❌ insert the employee error from rework_employee_pos()")

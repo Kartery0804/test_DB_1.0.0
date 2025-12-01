@@ -32,7 +32,6 @@ def add_dept(conn:pymysql.Connection ,dept_name:str ,dept_code: str ,parent_dept
             "updated_at": om.datetime.now(),
             **{k: v for k, v in field_mapping.items() if v is not None}
         }
-        print(add_data)
         if not om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"] and not om.mysql_select_dict(conn,"department",{"dept_code":dept_code})["data"]:
             if om.mysql_insert_dict(conn,"department",add_data) != None:
                 return True
@@ -126,34 +125,51 @@ def select_dept(conn:pymysql.Connection ,dept_name:str = None,dept_code: str = N
     except Exception as e:
         print(f'❌ Unknow error from select_dept() : {e}')
         return {"column_name": ["error"],"data": [["Maybe Department name duplication from select_dept()"]]}
+    
 
 #岗位 
 @regulate(0b1101)
-def add_position(conn:pymysql.Connection,position_name:str,dept_name:str,position_level:str = None,headcount_budget:int = 0,description:str = None,status:int = 1):
+def add_position(conn:pymysql.Connection,position_name:str,dept_name:str,position_level:str = None,headcount_budget:int = 0,description:str = None,status:int = 1,**kwargs):
     """新增岗位"""
     try:
-        dept_id = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"]
-        position = om.mysql_select_dict(conn,"position",{"position_name":position_name})["data"]
-        if dept_id and not position:
-            om.mysql_insert_dict(conn,"position",{
-                "position_name":position_name,
-                "dept_id":dept_id[0][0],
-                "position_level":position_level,
-                "headcount_budget":headcount_budget,
-                "description":description,
-                "status":status
-            })
-            return True
+        dept_id_data = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"]
+        if dept_id_data:
+            dept_id = dept_id_data[0][0]
         else:
-            print("❌ Can select dept_id or Position name duplication from add_position()")
+            print("❌ didn't have this department")
             return False
+        field_mapping = {
+            "dept_id":dept_id,
+            "position_name":position_name,
+            "position_level": position_level,
+            "headcount_budget": headcount_budget,
+            "description":description,
+            "status":status
+        }
 
+        add_data = {
+            "updated_at": om.datetime.now(),
+            "created_at": om.datetime.now(),
+            **{k: v for k, v in field_mapping.items() if v is not None}
+        }
+        aa =  om.mysql_select_dict(conn,"position",{"position_name":position_name,"dept_id":dept_id})["data"]
+        print(aa)
+        if not aa:
+            if om.mysql_insert_dict(conn,"position",add_data) != None:
+                return True
+            else:
+                raise Exception("error from add_position() ")
+        else:
+            print("❌ position name duplication from add_position()")
+            return False
+        
+        
     except Exception as e:
-        print(f'❌ Unknow error from add_position() : {e}')
+        print(f'❌ Unknow error from add_dept() : {e}')
         return False
 
 @regulate(0b1101)
-def update_position(conn:pymysql.Connection,position_name:str,new_position_name:str = None,dept_name:str = None,position_level:str = None,headcount_budget:int  = None,description:str = None,status:int = None):
+def update_position(conn:pymysql.Connection,position_name:str,new_position_name:str = None,dept_name:str = None,position_level:str = None,headcount_budget:int  = None,description:str = None,status:int = None,**kwargs):
     try:
         dept_id = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"]
         if dept_id:

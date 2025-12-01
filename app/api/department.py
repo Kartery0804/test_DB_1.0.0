@@ -3,6 +3,7 @@ from flask import jsonify,request
 from app.services import connect_mysql as cm
 from app.services import department_mysql as dm
 from app.services import login_mysql as lm
+from app.services import operation_mysql as om
 
 @api_bp.route('/dept/show', methods=['POST'])
 def dept_show():
@@ -153,5 +154,47 @@ def dept_select():
         return response
     except Exception as e:
         return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)],["dept_select"]]})
+    finally:
+        conn.close()
+
+@api_bp.route('/pos/add', methods=['POST'])
+def pos_add():
+    """
+    "username":str
+    "passward":str
+    "dept_name": str,
+    "position_name":str,
+
+    "position_level":str = None,
+    "headcount_budget":int = 0,
+    "description":str = None,
+    "status":int = 1
+    """
+
+    if not request.is_json:
+        return jsonify({"error":"Invalid type of post"})
+    try:
+        data = request.get_json()
+        conn = cm.connect_mysql(*cm.default)
+        status = lm.login_mysql(conn,data['username'],data['password'])
+        regulate_code = 0
+        response = None
+        dept_id_data = om.mysql_select_dict(conn,"department",{"dept_name":data["dept_name"]})["data"]
+        if dept_id_data:
+            dept_id = dept_id_data[0][0]
+        if status:
+            regulate_code = lm.get_regulate_code(conn,data['username'])
+            if dm.add_position(conn,**data,r_flag = regulate_code):
+                response = dm.read_info(conn,"position",{"dept_id":dept_id,"position_name":data["position_name"]},r_flag = regulate_code)
+            else:
+                response = {"column_name": ["error"],"data": [["Maybe Department name/code duplication from pos_add()"]]}
+            
+        else:
+            response = {"column_name": ["error"],"data": [["Unable to verify login"]]}
+            response["regulate_code"] = regulate_code
+        response["status"] = status
+        return response
+    except Exception as e:
+        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)]]})
     finally:
         conn.close()
