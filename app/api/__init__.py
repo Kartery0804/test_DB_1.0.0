@@ -6,3 +6,4 @@ from app.api import sqlserver
 from app.api import login
 from app.api import department
 from app.api import employee
+from app.api import contract
