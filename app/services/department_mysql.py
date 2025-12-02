@@ -152,9 +152,8 @@ def add_position(conn:pymysql.Connection,position_name:str,dept_name:str,positio
             "created_at": om.datetime.now(),
             **{k: v for k, v in field_mapping.items() if v is not None}
         }
-        aa =  om.mysql_select_dict(conn,"position",{"position_name":position_name,"dept_id":dept_id})["data"]
-        print(aa)
-        if not aa:
+
+        if not om.mysql_select_dict(conn,"position",{"position_name":position_name,"dept_id":dept_id})["data"]:
             if om.mysql_insert_dict(conn,"position",add_data) != None:
                 return True
             else:
@@ -169,17 +168,28 @@ def add_position(conn:pymysql.Connection,position_name:str,dept_name:str,positio
         return False
 
 @regulate(0b1101)
-def update_position(conn:pymysql.Connection,position_name:str,new_position_name:str = None,dept_name:str = None,position_level:str = None,headcount_budget:int  = None,description:str = None,status:int = None,**kwargs):
+def update_position(conn:pymysql.Connection,position_name:str,dept_name:str,job_family:str = None,new_position_name:str = None,new_dept_name:str =None,position_level:str = None,headcount_budget:int  = None,description:str = None,status:int = None,**kwargs):
     try:
-        dept_id = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"]
-        if dept_id:
+        new_dept_id = dept_id = position_id = None
+        if dept_name:
+            dept_id = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"][0][0]
+        if new_dept_name:
+            new_dept_id = om.mysql_select_dict(conn,"department",{"dept_name":new_dept_name})["data"][0][0]
+        if dept_id and position_name:
+            position_id = om.mysql_select_dict(conn,"position",{"position_name":position_name,"dept_id":dept_id})["data"][0][0]
+        else:
+            print("❌ Can't select dept_id/position from update_position()")
+            return False
+        if position_id:
             field_mapping = {
                     "position_name":new_position_name,
-                    "dept_id":dept_id[0][0],
+                    "dept_id":new_dept_id,
                     "position_level":position_level,
                     "headcount_budget":headcount_budget,
                     "description":description,
-                    "status":status
+                    "status":status,
+                    "position_level":position_level,
+                    "job_family":job_family
                 }
 
             update_data = {
@@ -187,11 +197,11 @@ def update_position(conn:pymysql.Connection,position_name:str,new_position_name:
                 **{k: v for k, v in field_mapping.items() if v is not None}
             }
 
-            if om.mysql_update_dict(conn,"position",update_data,{"position_name":position_name}) != None:
+            if om.mysql_update_dict(conn,"position",update_data,{"position_name":position_name,"dept_id":dept_id}) != None:
                 return True
             return False
         else:
-            print("❌ Can't select dept_id from update_position()")
+            print("❌ Can't select position_id from update_position()")
             return False
 
     except Exception as e:
@@ -199,20 +209,25 @@ def update_position(conn:pymysql.Connection,position_name:str,new_position_name:
         return False
     
 @regulate(0b1101)
-def delete_position(conn:pymysql.Connection,position_name:str):
+def delete_position(conn:pymysql.Connection,position_name:str,dept_name:str):
     try:
-        if position_name:
-            flag = om.mysql_delete_dict(conn,"position",{"position_name":position_name})
-            if flag == None:
+        dept_id = position_id = None
+        if dept_name:
+            dept_id = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"][0][0]
+        if dept_id and position_name:
+            position_id = om.mysql_select_dict(conn,"position",{"position_name":position_name,"dept_id":dept_id})["data"][0][0]
+            if position_id == None:
                 print(f"❌ Can't delete {position_name} from delete_position()")
                 return False
-            return True
+            else:
+                om.mysql_delete_dict(conn,"position",{"position_id":position_id})
+                return True
         else:
-            print(f"❌ Can't select {position_name} from delete_position()")
+            print(f"❌ Can't select {position_name} and {dept_name} from delete_position()")
             return False
 
     except Exception as e:
-        print(f'❌ Unknow error from create_dept() : {e}')
+        print(f'❌ Unknow error from delete_position() : {e}')
         return False
 
 @regulate(0b1101)
