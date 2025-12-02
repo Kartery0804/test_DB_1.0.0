@@ -14,7 +14,7 @@ def add_contract(conn:pymysql.Connection ,contract_no: str ,contract_type :str,e
             if employee_data:
                 employee_id = employee_data[0][0]
             else:
-                print("didn't have this employee")
+                print("❌ didn't have this employee")
                 return False
 
             
@@ -112,4 +112,51 @@ def termination_contract(conn:pymysql.Connection ,contract_no: str ,termination_
         
     except Exception as e:
         print(f'❌ Unknow error from termination_contract() : {e} 1133')
+        return False
+    
+#员工档案
+@regulate(0b1101)
+def add_empl_doc(conn:pymysql.Connection ,doc_type :str,employee_no:str,title:str,file_url:str,is_confidential:int = None,issued_by:str=None,issued_date:str=None,expire_date:str=None,verified_by_user_id:str=None,verified_at:str=None,remark:str=None,**kwargs):
+    try:
+        employee_id = None
+        if employee_no:
+            employee_data = om.mysql_select_dict(conn,"employee",{"employee_no":employee_no})["data"]
+            if employee_data:
+                employee_id = employee_data[0][0]
+            else:
+                print("❌ didn't have this employee")
+                return False
+
+            
+        field_mapping = {
+            "doc_type":doc_type,
+            "employee_id":employee_id,
+            "title":title,
+            "is_confidential":is_confidential,
+            "issued_by":issued_by,
+            "issued_date":issued_date,
+            "expire_date":expire_date,
+            "verified_by_user_id":verified_by_user_id,
+            "verified_at":verified_at,
+            "remark":remark,
+            "file_url":file_url
+        }
+
+        add_data = {
+            "created_at": om.datetime.now(),
+            "updated_at":om.datetime.now(),
+            **{k: v for k, v in field_mapping.items() if v is not None}
+        }
+        if not om.mysql_select_dict(conn,"employee_document",{"employee_id":employee_id,"doc_type":doc_type,"title":title})["data"]:
+            if om.mysql_insert_dict(conn,"employee_document",add_data) != None:
+                return True
+            else:
+                raise Exception("error from mysql_insert_dict() 1114")
+        else:
+            print("❌ empl_document name duplication from add_empl_doc() 1124")
+            return False
+        
+        
+    except Exception as e:
+        print(f'❌ Unknow error from add_empl_doc()1134 : {e}')
         return False

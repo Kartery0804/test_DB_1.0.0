@@ -141,11 +141,7 @@ def dept_select():
         response = None
         if status:
             regulate_code = lm.get_regulate_code(conn,data['username'])
-            select_data = dm.select_dept(conn,**data,r_flag = regulate_code)
-            if select_data:
-                response = select_data
-            else:
-                response = {"column_name": ["error"],"data": [["Maybe Department name duplication from select_dept()"]]}
+            response = dm.select_dept(conn,**data,r_flag = regulate_code)
             
         else:
             response = {"column_name": ["error"],"data": [["Unable to verify login"]]}
@@ -156,6 +152,8 @@ def dept_select():
         return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)],["dept_select"]]})
     finally:
         conn.close()
+
+#岗位
 
 @api_bp.route('/pos/add', methods=['POST'])
 def pos_add():
@@ -168,7 +166,8 @@ def pos_add():
     "position_level":str = None,
     "headcount_budget":int = 0,
     "description":str = None,
-    "status":int = 1
+    "status":int = 1,
+    job_family: str = None
     """
 
     if not request.is_json:
@@ -212,7 +211,8 @@ def pos_update():
     "description":str = None,
     "status":int = 1,
     "ob_family":str = None,
-    "new_position_name":str
+    "new_position_name":str,
+    "new_dept_name":str
     """
 
     if not request.is_json:
@@ -240,5 +240,46 @@ def pos_update():
         return response
     except Exception as e:
         return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)]]})
+    finally:
+        conn.close()
+
+@api_bp.route('/pos/select', methods=['POST'])
+def pos_select():
+    """
+    "username":str
+    "passward":str
+
+    "position_level":str = None,
+    "headcount_budget":int = 0,
+    "description":str = None,
+    "status":int = 1,
+    job_family: str = None
+    "dept_name": str = None,
+    "position_name":str = None,
+    """
+
+    if not request.is_json:
+        return jsonify({"error":"Invalid type of post"})
+    try:
+        data = request.get_json()
+        conn = cm.connect_mysql(*cm.default)
+        status = lm.login_mysql(conn,data['username'],data['password'])
+        regulate_code = 0
+        response = None
+        if status:
+            regulate_code = lm.get_regulate_code(conn,data['username'])
+            select_data = dm.select_position(conn,**data,r_flag = regulate_code)
+            if select_data['data']:
+                response = select_data
+            else:
+                response = {"column_name": ["error"],"data": [["Maybe Department name duplication from select_dept()"]]}
+            
+        else:
+            response = {"column_name": ["error"],"data": [["Unable to verify login"]]}
+            response["regulate_code"] = regulate_code
+        response["status"] = status
+        return response
+    except Exception as e:
+        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)],["dept_select"]]})
     finally:
         conn.close()

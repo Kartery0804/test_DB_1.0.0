@@ -4,6 +4,7 @@ from app.services import connect_mysql as cm
 from app.services import department_mysql as dm
 from app.services import login_mysql as lm
 from app.services import contract_mysql as tm 
+from app.services import operation_mysql as om
 
 @api_bp.route('/cont/add', methods=['POST'])
 def cont_add():
@@ -119,5 +120,55 @@ def cont_termination():
         return response
     except Exception as e:
         return jsonify({"regulate_code":0,"column_name": ["error1143"],"data": [[str(e)]]})
+    finally:
+        conn.close()
+
+#人员档案
+
+@api_bp.route('/pos_doc/add', methods=['POST'])
+def empl_doc_add():
+    """
+    username :str 用户,
+    passward :str 密码,
+    doc_type :str ID_copy/diploma/cert/NDA/...,
+    employee_no:str 员工编号,
+    title:str 标题,
+    file_url:str 文件地址,
+    is_confidential:int 是否涉密,
+
+    issued_by:str=None 签发单位,
+    issued_date:str=None 签发日期,
+    expire_date:str=None 到期时间,
+    verified_by_user_id:str=None 校验人,
+    verified_at:str=None 校验时间,
+    remark:str=None 备注
+    """
+
+    if not request.is_json:
+        return jsonify({"error":"Invalid type of post"})
+    try:
+        data = request.get_json()
+        conn = cm.connect_mysql(*cm.default)
+        status = lm.login_mysql(conn,data['username'],data['password'])
+        regulate_code = 0
+        response = None
+        employee_id = None
+        employee_data = om.mysql_select_dict(conn,"employee",{"employee_no":data['employee_no']})["data"]
+        if employee_data:
+            employee_id = employee_data[0][0]
+        if status:
+            regulate_code = lm.get_regulate_code(conn,data['username'])
+            if tm.add_empl_doc(conn,**data,r_flag = regulate_code):
+                response = dm.read_info(conn,"employee_document",{"employee_id":employee_id,"doc_type":data['doc_type'],"title":data['title']},r_flag = regulate_code)
+            else:
+                response = {"column_name": ["error"],"data": [["Maybe employee_document name duplication from empl_doc_add()"]]}
+            
+        else:
+            response = {"column_name": ["error"],"data": [["Unable to verify login"]]}
+            response["regulate_code"] = regulate_code
+        response["status"] = status
+        return response
+    except Exception as e:
+        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)]]})
     finally:
         conn.close()

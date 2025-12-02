@@ -112,15 +112,19 @@ def select_dept(conn:pymysql.Connection ,dept_name:str = None,dept_code: str = N
             "manager_employee_id": manager_employee_id,
             "status":status
         }
-
         select_data = {
             **{k: v for k, v in field_mapping.items() if v is not None}
         }
         dept_data = om.mysql_select_dict(conn,"department",select_data)
-        if  dept_data["data"]:
-            return dept_data
+        if dept_data:
+            if dept_data['data']:
+                return dept_data
+            else:
+                print("❌ didn't select data form select_dept()")
+                return dept_data
         else:
-            raise Exception("error from mysql_select_dict()")
+            dept_data = {'column_name':["error"],"data":["❌ mysql_select_dict error form select_dept()"]}
+            return dept_data
 
     except Exception as e:
         print(f'❌ Unknow error from select_dept() : {e}')
@@ -129,7 +133,7 @@ def select_dept(conn:pymysql.Connection ,dept_name:str = None,dept_code: str = N
 
 #岗位 
 @regulate(0b1101)
-def add_position(conn:pymysql.Connection,position_name:str,dept_name:str,position_level:str = None,headcount_budget:int = 0,description:str = None,status:int = 1,**kwargs):
+def add_position(conn:pymysql.Connection,position_name:str,dept_name:str,job_family:str = None,position_level:str = None,headcount_budget:int = 0,description:str = None,status:int = 1,**kwargs):
     """新增岗位"""
     try:
         dept_id_data = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"]
@@ -144,7 +148,8 @@ def add_position(conn:pymysql.Connection,position_name:str,dept_name:str,positio
             "position_level": position_level,
             "headcount_budget": headcount_budget,
             "description":description,
-            "status":status
+            "status":status,
+            "job_family":job_family
         }
 
         add_data = {
@@ -231,6 +236,55 @@ def delete_position(conn:pymysql.Connection,position_name:str,dept_name:str):
         return False
 
 @regulate(0b1101)
+def select_position(conn:pymysql.Connection,position_name:str=None,dept_name:str=None,job_family:str = None,position_level:str = None,headcount_budget:int  = None,description:str = None,status:int = None,**kwargs):
+    try:
+        dept_id = position_id = None
+        if dept_name:
+            dept_id = om.mysql_select_dict(conn,"department",{"dept_name":dept_name})["data"][0][0]
+        if dept_id and position_name:
+            position_id = om.mysql_select_dict(conn,"position",{"position_name":position_name,"dept_id":dept_id})["data"][0][0]
+        else:
+            print("❌ Can't select dept_id/position from select_position()")
+        field_mapping = {
+            "position.position_id":position_id,
+            "position.dept_id":dept_id,
+            "position_name":position_name,
+            "position_level": position_level,
+            "headcount_budget": headcount_budget,
+            "description":description,
+            "status":status,
+            "job_family":job_family
+        }
+
+        select_data = {
+            **{k: v for k, v in field_mapping.items() if v is not None}
+        }
+        pos_data = om.mysql_select_dict(
+            conn,
+            tables=['position'],
+            join_conditions = [
+                {
+                    'type':'INNER',
+                    'table1':'position',
+                    'table2':'department',
+                    'on':'position.dept_id = department.dept_id'
+                }
+            ],
+            columns=['position.position_name','department.dept_name'],
+            where_arg=select_data
+        )
+        if  pos_data["data"]:
+            return pos_data
+        else:
+            print("❌ didn't select data form select_position()")
+            return pos_data
+
+    except Exception as e:
+        print(f'❌ Unknow error from select_pos() : {e}')
+        return {"column_name": ["error"],"data": [["Maybe Department name duplication from select_position()"]]}
+
+
+@regulate(0b1101)
 def read_info(conn:pymysql.Connection,table_name:str,where_arg: dict = None):
     try:
         info = om.mysql_select_dict(conn,table_name,where_arg)
@@ -253,11 +307,11 @@ if __name__ == "__main__":
         #print(om.mysql_select_dict(conn,"department"))
 
         
-        add_position(conn,"Concept_Art1","Animation Dept","1",0,"原画师1",r_flag = 0b1101)
+        #add_position(conn,"Concept_Art1","Animation Dept","1",0,"原画师1",r_flag = 0b1101)
         #update_position(conn,"Concept_Art",dept_name="Animation Dept",headcount_budget = 10,r_flag = 0b1101)
-        add_position(conn,"Mover","Logistics Dept","1",10,"搬货工",r_flag = 0b1101)
+        #add_position(conn,"Mover","Logistics Dept","1",10,"搬货工",r_flag = 0b1101)
         #print(delete_position(conn,"Mover",r_flag = 0b1111))
-        print(om.mysql_select_dict(conn,"position"))
+        print(select_dept(conn,r_flag=0b1111))
 
 
     except:
