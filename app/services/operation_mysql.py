@@ -6,13 +6,131 @@ from decimal import Decimal
 #静态检查
 import pymysql.cursors
 
-
-
-
-
 #SELECT
+def mysql_select_dict(connection: pymysql.Connection, 
+                     table_name: str = None,
+                     where_arg: dict = None, 
+                     select_columns: list = None,
+                     tables: list = None,
+                     join_conditions: list = None,
+                     columns: list = None
+                     ):
+    """
+    执行参数化查询,防止SQL注入，支持多表连接和指定展示列
+    
+    Args:
+        connection: 数据库连接（由外部管理）
+        table_name: 单表名（向后兼容）
+        tables: 多表名列表，例如 ['users', 'orders']
+        join_conditions: 连接条件列表，例如 [
+            {'type': 'INNER', 'table1': 'users', 'table2': 'orders', 'on': 'users.id = orders.user_id'}
+        ]
+        where_arg: 查询条件字典，例如 {'id': 1, 'name': 'test'}
+        columns: 要查询的列名列表（向后兼容）
+        select_columns: 指定要展示的列，支持表名前缀，例如 ['users.id', 'users.name', 'orders.order_date']
+    """
+    cursor: Optional[pymysql.cursors.Cursor] = None
+    try:
+        # 处理表名参数（向后兼容）
+        if tables is None:
+            tables = [table_name] if table_name else []
+        
+        if not tables:
+            raise ValueError("必须指定表名")
+        
+        # 处理列名参数（向后兼容）
+        if select_columns is None:
+            select_columns = columns
+        
+        # 构建列名部分
+        if select_columns and isinstance(select_columns, list) and len(select_columns) > 0:
+            # 对列名进行安全处理，支持表名前缀
+            safe_columns = []
+            for col in select_columns:
+                if '.' in col:
+                    # 处理带表名前缀的列名，如 'users.id'
+                    table_part, col_part = col.split('.', 1)
+                    safe_columns.append(f"`{table_part}`.`{col_part}`")
+                else:
+                    # 普通列名
+                    safe_columns.append(f"`{col}`")
+            columns_str = ", ".join(safe_columns)
+        else:
+            columns_str = "*"
+        
+        # 构建基础SQL语句 - 使用第一个表作为主表
+        if len(tables) == 0:
+            raise ValueError("必须指定至少一个表")
+        
+        main_table = tables[0]
+        from_clause = f"`{main_table}`"
+        
+        # 构建JOIN子句
+        join_clause = ""
+        if join_conditions and isinstance(join_conditions, list):
+            for condition in join_conditions:
+                join_type = condition.get('type', 'INNER').upper()
+                table1 = condition.get('table1', '')
+                table2 = condition.get('table2', '')
+                on_condition = condition.get('on', '')
+                
+                if table1 and table2 and on_condition:
+                    join_clause += f" {join_type} JOIN `{table2}` ON {on_condition}"
+        
+        # 构建完整的SQL语句
+        sql = f"SELECT {columns_str} FROM {from_clause}{join_clause}"
+        params = ()
+        
+        # 如果有查询条件，添加WHERE子句
+        if where_arg and isinstance(where_arg, dict):
+            where_conditions = []
+            where_values = []
+            for key, value in where_arg.items():
+                # 处理带表名前缀的条件键
+                if '.' in key:
+                    table_part, col_part = key.split('.', 1)
+                    where_conditions.append(f"`{table_part}`.`{col_part}` = %s")
+                else:
+                    where_conditions.append(f"`{key}` = %s")
+                where_values.append(value)
+            
+            if where_conditions:
+                sql += " WHERE " + " AND ".join(where_conditions)
+                params = tuple(where_values)
+        
+        print(f"执行的SQL: {sql}")  # 调试用
+        
+        # 创建游标并执行参数化查询
+        cursor = connection.cursor()
+        cursor.execute(sql, params)
+        
+        print("✅ 查询成功")
+
+        data_dict = {"column_name": [], "data": []}
+
+        # 获取列名
+        if cursor.description:
+            data_dict["column_name"] = [desc[0] for desc in cursor.description]
+        
+        # 分批读取数据
+        while True:
+            rows = cursor.fetchmany(size=100)
+            if not rows:
+                break
+            for row in rows:
+                data_dict["data"].append(row)
+        return data_dict
+                        
+    except Exception as e:
+        print(f"执行查询时发生错误: {e}")
+        return None
+    finally:
+        # 只关闭游标，不关闭连接
+        if cursor:
+            cursor.close()
+
 """不可直接序列号化,但可以用于通过pymysql添加数据条目"""
-def mysql_select_dict(connection: pymysql.Connection, table_name: str, where_arg: dict = None):
+def mysql_select_dict_old(connection: pymysql.Connection, table_name: str, where_arg: dict = None):
     """
     执行参数化查询,防止SQL注入
     
