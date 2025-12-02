@@ -268,12 +268,7 @@ def pos_select():
         response = None
         if status:
             regulate_code = lm.get_regulate_code(conn,data['username'])
-            select_data = dm.select_position(conn,**data,r_flag = regulate_code)
-            if select_data['data']:
-                response = select_data
-            else:
-                response = {"column_name": ["error"],"data": [["Maybe Department name duplication from select_dept()"]]}
-            
+            response = dm.select_position(conn,**data,r_flag = regulate_code)
         else:
             response = {"column_name": ["error"],"data": [["Unable to verify login"]]}
             response["regulate_code"] = regulate_code

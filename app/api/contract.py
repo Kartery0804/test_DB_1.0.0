@@ -110,6 +110,7 @@ def cont_termination():
             regulate_code = lm.get_regulate_code(conn,data['username'])
             if tm.termination_contract(conn,**data,r_flag = regulate_code):
                 response = dm.read_info(conn,"contract",{"contract_no":data['contract_no']},r_flag = regulate_code)
+                response["empl_status"] = "resigned"
             else:
                 response = {"column_name": ["error"],"data": [["Maybe contract no/type duplication from cont_termination()1123"]]}
             

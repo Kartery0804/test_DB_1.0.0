@@ -6,7 +6,7 @@ from app.services import config_mysql as cf
 
 
 @regulate(0b1101)
-def add_contract(conn:pymysql.Connection ,contract_no: str ,contract_type :str,employee_no:str,start_date:str,contract_status:str,sign_date:str=None,end_date:str=None,probation_months:int=None,termination_date:str=None,termination_reason:str=None,file_url:str=None,**kwargs):
+def add_contract(conn:pymysql.Connection ,contract_no: str ,contract_type :str,employee_no:str,start_date:str,contract_status:str = None,sign_date:str=None,end_date:str=None,probation_months:int=None,termination_date:str=None,termination_reason:str=None,file_url:str=None,**kwargs):
     try:
         employee_id = None
         if employee_no:
@@ -54,7 +54,7 @@ def add_contract(conn:pymysql.Connection ,contract_no: str ,contract_type :str,e
 @regulate(0b1101)
 def renew_contract(conn:pymysql.Connection ,contract_no: str ,start_date:str,end_date:str,contract_type :str = None,probation_months:int=None,termination_date:str=None,termination_reason:str=None,file_url:str=None,**kwargs):
     try:
-            
+        
         field_mapping = {
             "contract_no":contract_no,
             "contract_type":contract_type,
@@ -89,19 +89,33 @@ def renew_contract(conn:pymysql.Connection ,contract_no: str ,start_date:str,end
 @regulate(0b1101)
 def termination_contract(conn:pymysql.Connection ,contract_no: str ,termination_reason:str=None,**kwargs):
     try:
-            
+        employee_id = None
+        contract_data = om.mysql_select_dict(conn,"contract",{"contract_no":contract_no})["data"]
+        if contract_data:
+            employee_id = contract_data[0][1]
+        else:
+            print("❌ didn't have this contract")
+            return False
+        employee_data = om.mysql_select_dict(conn,"employee",{"employee_id":employee_id})["data"]
+        if not employee_data:
+            print("❌ didn't have this employee")
+            return False
         field_mapping = {
             "termination_reason":termination_reason,
             'contract_status':'terminated'
         }
 
-        add_data = {
+        cont_update_data = {
             "updated_at":om.datetime.now(),
             "termination_date":om.datetime.now(),
             **{k: v for k, v in field_mapping.items() if v is not None and v != ""}
         }
+        empl_update_data = {
+            "updated_at":om.datetime.now(),
+            "status":"resigned"
+        }
         if om.mysql_select_dict(conn,"contract",{"contract_no":contract_no})["data"]:
-            if om.mysql_update_dict(conn,"contract",add_data,{"contract_no":contract_no}) != None:
+            if om.mysql_update_dict(conn,"contract",cont_update_data,{"contract_no":contract_no}) != None:
                 return True
             else:
                 raise Exception("error from termination_contract() 1113")
