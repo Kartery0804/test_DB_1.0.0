@@ -29,7 +29,7 @@ def add_contract(conn:pymysql.Connection ,contract_no: str ,contract_type :str,e
             "probation_months":probation_months,
             "termination_date":termination_date,
             "termination_reason":termination_reason,
-            "file_url":file_url,
+            "file_url":file_url
         }
 
         add_data = {
@@ -85,7 +85,7 @@ def renew_contract(conn:pymysql.Connection ,contract_no: str ,start_date:str,end
     except Exception as e:
         print(f'❌ Unknow error from renew_contract() : {e} 1132')
         return False
-    
+
 @regulate(0b1101)
 def termination_contract(conn:pymysql.Connection ,contract_no: str ,termination_reason:str=None,**kwargs):
     try:
@@ -128,6 +128,74 @@ def termination_contract(conn:pymysql.Connection ,contract_no: str ,termination_
         print(f'❌ Unknow error from termination_contract() : {e} 1133')
         return False
     
+@regulate(0b1101)
+def select_cont(conn:pymysql.Connection ,contract_no: str =None,contract_type :str=None,employee_no:str=None,start_date:str=None,contract_status:str = None,sign_date:str=None,end_date:str=None,probation_months:int=None,termination_date:str=None,termination_reason:str=None,file_url:str=None,**kwargs):
+    try:
+        employee_id = None
+        if employee_no:
+            employee_data = om.mysql_select_dict(conn,"employee",{"employee_no":employee_no})["data"]
+            if employee_data:
+                employee_id = employee_data[0][0]
+            else:
+                print("❌ didn't have this employee")
+        
+        field_mapping = {
+            "contract_no":contract_no,
+            "contract_type":contract_type,
+            "contract.employee_id":employee_id,
+            "start_date":start_date,
+            "contract_status":contract_status,
+            "sign_date":sign_date,
+            "end_date":end_date,
+            "probation_months":probation_months,
+            "termination_date":termination_date,
+            "termination_reason":termination_reason,
+            "file_url":file_url
+        }
+        select_data = {
+            **{k: v for k, v in field_mapping.items() if v is not None}
+        }
+        cont_data = om.mysql_select_dict(conn,
+            tables=['contract'],  # 主表使用别名
+            join_conditions=[
+                {
+                    'type': 'LEFT',
+                    'table1': 'contract',
+                    'table2': 'employee',
+                    'on': 'contract.employee_id = employee.employee_id'
+                }
+            ],
+            where_arg=select_data,
+            select_columns=[
+                'employee.name_cn', 
+                'employee_no',
+                "contract_no",
+                "contract_type",
+                "start_date",
+                "contract_status",
+                "sign_date",
+                "end_date",
+                "probation_months",
+                "termination_date",
+                "termination_reason",
+                "file_url"
+            ]
+        )
+        if cont_data:
+            if cont_data['data']:
+                return cont_data
+            else:
+                print("❌ didn't select data form select_cont()")
+                return cont_data
+        else:
+            cont_data = {'column_name':["error"],"data":["❌ mysql_select_dict error form select_cont()"]}
+            return cont_data
+
+    except Exception as e:
+        print(f'❌ Unknow error from select_cont() : {e}')
+        return {"column_name": ["error"],"data": [["Maybe Department name duplication from select_cont()"]]}
+    
+
 #员工档案
 @regulate(0b1101)
 def add_empl_doc(conn:pymysql.Connection ,doc_type :str,employee_no:str,title:str,file_url:str,is_confidential:int = None,issued_by:str=None,issued_date:str=None,expire_date:str=None,verified_by_user_id:str=None,verified_at:str=None,remark:str=None,**kwargs):
