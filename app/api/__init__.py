@@ -7,3 +7,4 @@ from app.api import login
 from app.api import department
 from app.api import employee
 from app.api import contract
+from app.api import attendance_record
