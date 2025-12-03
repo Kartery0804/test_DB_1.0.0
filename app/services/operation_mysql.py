@@ -14,21 +14,7 @@ def mysql_select_dict(connection: pymysql.Connection,
                      tables: list = None,
                      join_conditions: list = None,
                      columns: list = None
-                     ):
-    """
-    执行参数化查询,防止SQL注入，支持多表连接和指定展示列
-    
-    Args:
-        connection: 数据库连接（由外部管理）
-        table_name: 单表名（向后兼容）
-        tables: 多表名列表，例如 ['users', 'orders']
-        join_conditions: 连接条件列表，例如 [
-            {'type': 'INNER', 'table1': 'users', 'table2': 'orders', 'on': 'users.id = orders.user_id'}
-        ]
-        where_arg: 查询条件字典，例如 {'id': 1, 'name': 'test'}
-        columns: 要查询的列名列表（向后兼容）
-        select_columns: 指定要展示的列，支持表名前缀，例如 ['users.id', 'users.name', 'orders.order_date']
-    """
+    ):
     cursor: Optional[pymysql.cursors.Cursor] = None
     try:
         # 处理表名参数（向后兼容）
@@ -42,18 +28,39 @@ def mysql_select_dict(connection: pymysql.Connection,
         if select_columns is None:
             select_columns = columns
         
-        # 构建列名部分
+        # 构建列名部分 - 修复列别名处理
         if select_columns and isinstance(select_columns, list) and len(select_columns) > 0:
-            # 对列名进行安全处理，支持表名前缀
             safe_columns = []
             for col in select_columns:
-                if '.' in col:
-                    # 处理带表名前缀的列名，如 'users.id'
-                    table_part, col_part = col.split('.', 1)
-                    safe_columns.append(f"`{table_part}`.`{col_part}`")
+                # 检查是否包含列别名 (使用 "as" 关键字)
+                if ' as ' in col.lower():
+                    # 分离列表达式和别名
+                    parts = col.split(' as ', 1)
+                    col_expr = parts[0].strip()
+                    col_alias = parts[1].strip()
+                    
+                    # 处理列表达式
+                    if '.' in col_expr:
+                        # 处理带表名前缀的列名
+                        table_part, col_part = col_expr.split('.', 1)
+                        safe_col_expr = f"`{table_part.strip()}`.`{col_part.strip()}`"
+                    else:
+                        # 普通列名
+                        safe_col_expr = f"`{col_expr}`"
+                    
+                    # 添加别名
+                    safe_col = f"{safe_col_expr} as `{col_alias}`"
+                    safe_columns.append(safe_col)
                 else:
-                    # 普通列名
-                    safe_columns.append(f"`{col}`")
+                    # 没有别名的情况
+                    if '.' in col:
+                        # 处理带表名前缀的列名
+                        table_part, col_part = col.split('.', 1)
+                        safe_columns.append(f"`{table_part.strip()}`.`{col_part.strip()}`")
+                    else:
+                        # 普通列名
+                        safe_columns.append(f"`{col}`")
+            
             columns_str = ", ".join(safe_columns)
         else:
             columns_str = "*"
@@ -62,8 +69,16 @@ def mysql_select_dict(connection: pymysql.Connection,
         if len(tables) == 0:
             raise ValueError("必须指定至少一个表")
         
+        # 处理主表（支持别名）
         main_table = tables[0]
-        from_clause = f"`{main_table}`"
+        if ' as ' in main_table.lower():
+            # 处理带别名的表名
+            table_parts = main_table.split(' as ')
+            table_name = table_parts[0].strip()
+            alias = table_parts[1].strip()
+            from_clause = f"`{table_name}` as `{alias}`"
+        else:
+            from_clause = f"`{main_table}`"
         
         # 构建JOIN子句
         join_clause = ""
@@ -75,7 +90,16 @@ def mysql_select_dict(connection: pymysql.Connection,
                 on_condition = condition.get('on', '')
                 
                 if table1 and table2 and on_condition:
-                    join_clause += f" {join_type} JOIN `{table2}` ON {on_condition}"
+                    # 处理表2的别名
+                    if ' as ' in table2.lower():
+                        table2_parts = table2.split(' as ')
+                        table2_name = table2_parts[0].strip()
+                        table2_alias = table2_parts[1].strip()
+                        join_table = f"`{table2_name}` as `{table2_alias}`"
+                    else:
+                        join_table = f"`{table2}`"
+                    
+                    join_clause += f" {join_type} JOIN {join_table} ON {on_condition}"
         
         # 构建完整的SQL语句
         sql = f"SELECT {columns_str} FROM {from_clause}{join_clause}"
@@ -89,7 +113,7 @@ def mysql_select_dict(connection: pymysql.Connection,
                 # 处理带表名前缀的条件键
                 if '.' in key:
                     table_part, col_part = key.split('.', 1)
-                    where_conditions.append(f"`{table_part}`.`{col_part}` = %s")
+                    where_conditions.append(f"`{table_part.strip()}`.`{col_part.strip()}` = %s")
                 else:
                     where_conditions.append(f"`{key}` = %s")
                 where_values.append(value)
