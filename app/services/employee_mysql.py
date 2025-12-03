@@ -183,7 +183,7 @@ def select_employee(
             "dept_id":dept_id,
             "position_id":position_id,
             "manager_employee_id":manager_employee_id,
-            "status":status,
+            "employee.status":status,
             "updated_by":updated_by,
             "name_en":name_en,
             "gender":gender,
@@ -207,7 +207,26 @@ def select_employee(
             **{k: v for k, v in field_mapping.items() if v is not None and v != ""}
         }
     try:
-        data = om.mysql_select_dict(conn,"employee",select_data)
+        #data = om.mysql_select_dict(conn,"employee",select_data)
+        data = om.mysql_select_dict(conn,
+            tables=['employee'],
+            join_conditions=[
+                {
+                    'type': 'INNER',
+                    'table1': 'employee', 
+                    'table2': 'department',
+                    'on': 'employee.dept_id = department.dept_id'
+                },
+                {
+                    'type': 'INNER',
+                    'table1': 'employee', 
+                    'table2': 'position',
+                    'on': 'employee.position_id = position.position_id'
+                }
+            ],
+            where_arg=select_data,
+            select_columns=['employee.name_cn','employee.employee_no', 'department.dept_name', 'position.position_name','employee.employment_type','employee.status', 'employee.name_en','employee.gender','employee.date_of_birth','employee.id_number','employee.phone','employee.email','employee.hire_date','employee.probation_end_date','employee.work_location','employee.salary_base','employee.bank_name','employee.bank_account_no','employee.social_city','employee.address','employee.emergency_name','employee.emergency_phone']
+        )
         print(f"✅ select success from select_employee()")
         return data
     except:

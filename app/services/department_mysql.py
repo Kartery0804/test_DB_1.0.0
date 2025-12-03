@@ -106,16 +106,43 @@ def select_dept(conn:pymysql.Connection ,dept_name:str = None,dept_code: str = N
                 manager_employee_id = manager_employee_data[0][0]
         
         field_mapping = {
-            "dept_name": dept_name,
-            "dept_code": dept_code, 
-            "parent_dept_id": parent_dept_id,
-            "manager_employee_id": manager_employee_id,
-            "status":status
+            "department.dept_name": dept_name,
+            "department.dept_code": dept_code, 
+            "department.parent_dept_id": parent_dept_id,
+            "department.manager_employee_id": manager_employee_id,
+            "department.status":status
         }
         select_data = {
             **{k: v for k, v in field_mapping.items() if v is not None}
         }
-        dept_data = om.mysql_select_dict(conn,"department",select_data)
+        dept_data = om.mysql_select_dict(conn,
+            tables=['department'],  # 主表使用别名
+            join_conditions=[
+                {
+                    'type': 'LEFT',
+                    'table1': 'department',
+                    'table2': 'department as parent_dept',
+                    'on': 'department.parent_dept_id = parent_dept.dept_id'
+                },
+                {
+                    'type': 'LEFT',
+                    'table1': 'department',
+                    'table2': 'employee',
+                    'on': 'department.manager_employee_id = employee.employee_id'
+                }
+            ],
+            where_arg=select_data,
+            select_columns=[
+                'department.dept_id', 
+                'department.dept_name', 
+                'employee.name_cn as manager_employee_name',
+                'parent_dept.dept_name as parent_dept_name',  # 上级部门名称
+                'department.dept_code',
+                'department.status',
+                'department.effective_from',
+                'department.effective_to'
+            ]
+        )
         if dept_data:
             if dept_data['data']:
                 return dept_data
@@ -252,7 +279,7 @@ def select_position(conn:pymysql.Connection,position_name:str=None,dept_name:str
             "position_level": position_level,
             "headcount_budget": headcount_budget,
             "description":description,
-            "status":status,
+            "position.status":status,
             "job_family":job_family
         }
 
@@ -270,7 +297,7 @@ def select_position(conn:pymysql.Connection,position_name:str=None,dept_name:str
                     'on':'position.dept_id = department.dept_id'
                 }
             ],
-            columns=['position.position_name','department.dept_name'],
+            columns=['department.dept_name','department.dept_code','position.position_name','position.status','position.headcount_budget','position.position_level','position.description','position.job_family'],
             where_arg=select_data
         )
         if  pos_data["data"]:
