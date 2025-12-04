@@ -242,3 +242,76 @@ def add_empl_doc(conn:pymysql.Connection ,doc_type :str,employee_no:str,title:st
     except Exception as e:
         print(f'❌ Unknow error from add_empl_doc()1134 : {e}')
         return False
+    
+@regulate(0b1101)
+def select_empl_doc(conn:pymysql.Connection ,doc_type :str=None,employee_no:str=None,title:str=None,file_url:str=None,is_confidential:int = None,issued_by:str=None,issued_date:str=None,expire_date:str=None,verified_by_user_id:str=None,verified_at:str=None,remark:str=None,**kwargs):
+    try:
+        employee_id = None
+        if employee_no:
+            employee_data = om.mysql_select_dict(conn,"employee",{"employee_no":employee_no})["data"]
+            if employee_data:
+                employee_id = employee_data[0][0]
+            else:
+                print("❌ didn't have this employee")
+        
+        field_mapping = {
+            "doc_type":doc_type,
+            "employee_document.employee_id":employee_id,
+            "title":title,
+            "is_confidential":is_confidential,
+            "issued_by":issued_by,
+            "issued_date":issued_date,
+            "expire_date":expire_date,
+            "verified_by_user_id":verified_by_user_id,
+            "verified_at":verified_at,
+            "remark":remark,
+            "file_url":file_url
+        }
+        select_data = {
+            **{k: v for k, v in field_mapping.items() if v is not None}
+        }
+        empl_contract_data = om.mysql_select_dict(conn,
+            tables=['employee_document'],  # 主表使用别名
+            join_conditions=[
+                {
+                    'type': 'LEFT',
+                    'table1': 'employee_document',
+                    'table2': 'employee',
+                    'on': 'employee_document.employee_id = employee.employee_id'
+                },
+                {
+                    'type': 'LEFT',
+                    'table1': 'employee_document',
+                    'table2': 'sys_user',
+                    'on': 'employee_document.verified_by_user_id = sys_user.user_id'
+                }
+            ],
+            where_arg=select_data,
+            select_columns=[
+                "title",
+                "doc_type",
+                'employee.name_cn',
+                "is_confidential",
+                "issued_by",
+                "issued_date",
+                "expire_date",
+                "verified_by_user_id",
+                "verified_at",
+                "remark",
+                "file_url",
+                "username"
+            ]
+        )
+        if empl_contract_data:
+            if empl_contract_data['data']:
+                return empl_contract_data
+            else:
+                print("❌ didn't select data form select_empl_doc()")
+                return empl_contract_data
+        else:
+            empl_contract_data = {'column_name':["error"],"data":["❌ mysql_select_dict error form select_empl_doc()"]}
+            return empl_contract_data
+
+    except Exception as e:
+        print(f'❌ Unknow error from select_select_empl_doccont() : {e}')
+        return {"column_name": ["error"],"data": [["Maybe Department name duplication from select_empl_doc()"]]}
