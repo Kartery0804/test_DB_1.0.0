@@ -104,6 +104,8 @@ def select_dept(conn:pymysql.Connection ,dept_name:str = None,dept_code: str = N
             manager_employee_data = om.mysql_select_dict(conn,"employee",{"employee_no":manager_employee_no})["data"]
             if manager_employee_data:
                 manager_employee_id = manager_employee_data[0][0]
+            else:
+                return {"column_name":"info","data":[["didn't found this employee"]]}
         
         field_mapping = {
             "department.dept_name": dept_name,

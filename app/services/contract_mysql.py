@@ -138,7 +138,7 @@ def select_cont(conn:pymysql.Connection ,contract_no: str =None,contract_type :s
                 employee_id = employee_data[0][0]
             else:
                 print("❌ didn't have this employee")
-        
+                return {"column_name":"info","data":[["didn't found this employee"]]}
         field_mapping = {
             "contract_no":contract_no,
             "contract_type":contract_type,
@@ -253,7 +253,7 @@ def select_empl_doc(conn:pymysql.Connection ,doc_type :str=None,employee_no:str=
                 employee_id = employee_data[0][0]
             else:
                 print("❌ didn't have this employee")
-        
+                return {"column_name":"info","data":[["didn't found this employee"]]}
         field_mapping = {
             "doc_type":doc_type,
             "employee_document.employee_id":employee_id,

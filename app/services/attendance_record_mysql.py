@@ -108,8 +108,8 @@ def select_attend_cod(conn:pymysql.Connection ,status:str=None,date: str=None,em
             if employee_data:
                 employee_id = employee_data[0][0]
             else:
-                print("❌ didn't have this employee")
-                return False
+                print("❌ didn't found this employee")
+                return {"column_name":"info","data":[["didn't found this employee"]]}
         if approver_user_name!=None:
             approver_user_id = om.mysql_select_dict(conn,"sys_user",{"username":approver_user_name})['data'][0][0]
         
