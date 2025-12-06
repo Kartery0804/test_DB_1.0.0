@@ -9,3 +9,4 @@ from app.api import employee
 from app.api import contract
 from app.api import attendance_record
 from app.api import visual_turnover
+from app.api import visual_attendrate

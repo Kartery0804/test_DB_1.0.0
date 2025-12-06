@@ -95,7 +95,7 @@ def generate_monthly_turnover_rate_no_table(conn:pymysql.Connection,year, output
             cursor.execute(sql)
             data = cursor.fetchall()
             result_df = pd.DataFrame(data)
-        
+        matplotlib.use('Agg')
         # 如果数据为空，提示并返回
         if result_df.empty:
             print(f"警告：{year}年没有找到相关数据")
@@ -268,11 +268,11 @@ def generate_monthly_turnover_rate_no_table(conn:pymysql.Connection,year, output
         plt.tight_layout()
         
         # 保存图表
-        plt.savefig(output_file, dpi=300, bbox_inches='tight', facecolor='white', edgecolor='none')
-        print(f"图表已保存为：{output_file}")
+        plt.savefig(cf.res_path+output_file, dpi=300, bbox_inches='tight', facecolor='white', edgecolor='none')
+        print(f"图表已保存为：{cf.res_path+output_file}")
         
         # 显示图表（可选）
-        plt.show()
+        #plt.show()
         
         # 在控制台打印数据摘要
         print("\n" + "="*70)
