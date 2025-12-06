@@ -30,3 +30,30 @@ def get_attendrate_image():
         return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)],["unknow error 1041:from get_attendrate_image()"]]})
     finally:
         conn.close()
+
+@api_bp.route('/attendrate/heatimage',methods=['POST'])
+def get_attendrate_heatimage():
+    if not request.is_json:
+        return {"column_name": ["error"],"data": [["Invalid type of post 1012: from get_attendrate_heatimage())"]]}
+    try:
+        data = request.get_json()
+        conn = cm.connect_mysql(*cm.default)
+        status = lm.login_mysql(conn,data['username'],data['password'])
+        regulate_code = 0
+        response = None
+        if status:
+            regulate_code = lm.get_regulate_code(conn,data['username'])
+            if va.create_attendance_heatmap_rounded(conn,data['year'],data['month'],output_path=f'attendance_heattable_{data['year']}_{data['month']}.png',r_flag = regulate_code):
+                response = send_file(f'{cf.res_path}attendance_heattable_{data['year']}_{data['month']}.png', mimetype='image/jpeg')
+                return response
+            else:
+                response = {"column_name": ["error"],"data": [["unknow error 1022: from get_attendrate_heatimage()"]]}
+        else:
+            response = {"column_name": ["error"],"data": [["Unable to verify login 1032: from get_attendrate_heatimage()"]]}
+            response["regulate_code"] = regulate_code
+        response["status"] = status
+        return response
+    except Exception as e:
+        return jsonify({"regulate_code":0,"column_name": ["error"],"data": [[str(e)],["unknow error 1042:from get_attendrate_heatimage()"]]})
+    finally:
+        conn.close()

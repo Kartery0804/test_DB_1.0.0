@@ -1,3 +1,6 @@
 flask
 pymysql
 faker
+matplotlib
+numpy
+pandas
